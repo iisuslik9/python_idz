@@ -1,7 +1,7 @@
 import math
 import cmath
 
-def task1(x, y):
+def piecewise_function(x, y):
     if x > 0 and y < 0:
         return x + y
     elif x > 0 and y > 1:
@@ -9,14 +9,15 @@ def task1(x, y):
     else:
         return x - y
 
-def task2(a):
+def complex_function(a):
+    #a = 1e-15
     if a <= 0:
         return None
-    arg1 = (a**2 + math.sqrt(a)) / (1 + (math.sin(a)**2) / (2*a))
-    arg2 = 2.5 / (2 * math.log(a))
-    return math.sqrt(math.cos(arg1) + arg2)
+    arg1 = (a**2 + cmath.sqrt(a)) / (1 + (cmath.sin(a)**2) / (2*a))
+    arg2 = 2.5 / (2 * cmath.log(a))
+    return cmath.sqrt(cmath.cos(arg1) + arg2)
 
-def task3(a, b):
+def process_two_numbers(a, b):
     if a == 0 or b == 0:
         return a, b
     if a > 0 and b > 0:
@@ -32,7 +33,7 @@ def task3(a, b):
         else:
             return (a + b) / 2, a - 1
 
-def task4(n):
+def find_divisors(n):
     divisors = []
     for i in range(1, int(math.sqrt(n)) + 1):
         if n % i == 0:
@@ -41,45 +42,56 @@ def task4(n):
                 divisors.append(n // i)
     return sorted(divisors)
 
-def task5(a, b):
+def sum_multiples_of_four(a, b):
     total = 0
-    for i in range(max(a, 4), b + 1, 4):
+    # Находим первое число >= a, которое делится на 4
+    start = a + (4 - a % 4) % 4
+    for i in range(start, b + 1, 4):
         total += i
     return total
 
-def task6(n):
+def count_digits(n):
     return len(str(n))
 
-def task7(x):
+def taylor_sin_series(x):
+    #ряд sin(x) с точностью 10^-5
+    
+    if x == 0:
+        return 1.0
     epsilon = 1e-5
-    s = 0
+    sum = 0
     term = 1
-    k = 1
-    fact = 1
+    n = 1
     while abs(term) >= epsilon:
-        term = ((-1)**(k//2) * (x**k)) / fact
-        s += term
-        k += 2
-        fact *= k * (k - 1)
-    return s
+        sum += term
+        term *= (-x**2) / ((2 * n) * (2 * n + 1))
+        n += 1
+    return sum
 
-def task8(x):
+def geometric_series_sum(x):
     epsilon = 1e-4
     if abs(x) >= 0.5:
         return None
     s = 0
-    term = 1
+    
+    x_pow = 1.0 # хранит x^n
+    minus_2x_pow = 1.0  # хранит (-2x)^n
     n = 0
-    x_pow = 1
-    while abs(term) >= epsilon:
-        coeff = (1 + ((-1)**n * 2**(n + 1)))
-        term = coeff * x_pow
+    while True:
+        term = x_pow + 2 * minus_2x_pow
+        
+        if abs(term) < epsilon:
+            break
+            
         s += term
-        n += 1
+
         x_pow *= x
+        minus_2x_pow *= (-2 * x)
+        n += 1
+        if n > 10000: break #если ряд расходится
     return s
 
-def task9():
+def first_hundred_primes():
     primes = []
     num = 2
     while len(primes) < 100:
@@ -98,141 +110,140 @@ def get_float(prompt):
         try:
             return float(input(prompt))
         except ValueError:
-            print("Возникла ошибка: Вы ввели не число!")
+            print("введите число")
 
 def get_int(prompt):
     while True:
         try:
             return int(input(prompt))
         except ValueError:
-            print("Возникла ошибка: Вы ввели не число!")
+            print("введите целое число!")
 
 def get_positive_float(prompt):
     while True:
-        try:
-            val = float(input(prompt))
-            if val <= 0:
-                print("Ошибка: Введите положительное число!")
-            else:
-                return val
-        except ValueError:
-            print("Возникла ошибка: Вы ввели не число!")
+        val = get_float(prompt)
+        if val > 0:
+            return val
+        print("введите положительное число!")
+
+def show_menu():
+    print("выберите задания (1-9) или 0 для выхода:")
+    print("-"*50)
+
+def handle_piecewise_function():
+    x = get_float("введите x: ")
+    y = get_float("введите y: ")
+    result = piecewise_function(x, y)
+    print(f"f({x}, {y}) = {result}")
+
+def handle_complex_function():
+    a = get_positive_float("Введите a > 0: ")
+    result = complex_function(a)
+
+    c_result = complex(result) 
+    imag_part = abs(c_result.imag) 
+    print(f"Результат: {c_result.real:10.6f} + {c_result.imag:10.6f}i")
+    print(f"|imag| = {imag_part:.2e}")
+    
+    if  imag_part > 1e-12:  # только если есть мнимая часть
+        print(f"F({a}) = {c_result:+.6f}")  # автоматический знак
+    else:
+        print(f"F({a}) = {c_result.real:.6f}")
+
+def handle_number_processing():
+    a = get_float("введите число a: ")
+    b = get_float("введите число b: ")
+    result_a, result_b = process_two_numbers(a, b)
+    print(f"a' = {result_a}, b' = {result_b}")
+
+def handle_divisors():
+    n = get_int("введите натуральное число N: ")
+    if n <= 0:
+        print("N должно быть натуральным")
+        return
+    divisors = find_divisors(n)
+    print(f"делители {n}: {', '.join(map(str, divisors))}")
+
+def handle_sum_multiples():
+    a = get_int("введите A: ")
+    b = get_int("введите B: ")
+    if a > b:
+        print("смена границ")
+        a, b = b, a
+    result = sum_multiples_of_four(a, b)
+    print(f"сумма чисел кратных 4 в [{a}, {b}] = {result}")
+
+def handle_digit_count():
+    n = get_int("введите натуральное число N: ")
+    if n <= 0:
+        print("N должно быть натуральным!")
+        return
+    result = count_digits(n)
+    print(f"rоличество цифр в {n}: {result}")
+
+def handle_sin_series():
+    x = get_float("Введите x (-pi ≤ x ≤ pi): ")
+    #x = math.pi / 2
+    if abs(x) > math.pi:
+        print("x выходит за пределы [-pi, pi]")
+    result = taylor_sin_series(x)
+    check = math.sin(x) / x if x != 0 else 1.0
+    print(f"S ≈ {result:.6f}")
+    print(f"f(x) = {check:.6f}")
+    print(f"Погрешность: {abs(result - check):.2e}")
+
+def handle_geometric_series():
+    x = get_float("Введите x (|x| < 0.5): ")
+    if abs(x) >= 0.5:
+        print("|x| должно быть < 0.5")
+        return
+    result = geometric_series_sum(x)
+    denom = (1 - x) * (1 + 2 * x)
+    check = 3 / denom
+    print(f"S ≈ {result:.6f}")
+    print(f"f({x}) = {check:.6f}")
+
+def handle_prime_numbers():
+    primes = first_hundred_primes()
+    print("первые 100 простых чисел:")
+    print(", ".join(map(str, primes)))
+
+
+def dispatch_choice(choice_str):
+    choice_str = choice_str.strip()
+    
+    match choice_str:
+        case '0':
+            print("программа завершилась")
+            return True  
+        case '1':
+            handle_piecewise_function()
+        case '2':
+            handle_complex_function()
+        case '3':
+            handle_number_processing()
+        case '4':
+            handle_divisors()
+        case '5':
+            handle_sum_multiples()
+        case '6':
+            handle_digit_count()
+        case '7':
+            handle_sin_series()
+        case '8':
+            handle_geometric_series()
+        case '9':
+            handle_prime_numbers()
+        case _:
+            print("введите число от 0 до 9!")
+            return False
+    return False
 
 def main():
     while True:
-        print("\n" + "="*50)
-        print("ВЫБЕРИТЕ ЗАДАНИЕ (1-9) или 0 для выхода:")
-        print("="*50)
-        print("1. f(x,y)")
-        print("2. F(a)")
-        print("3. Обработка двух чисел")
-        print("4. Делители числа")
-        print("5. Сумма кратных 4")
-        print("6. Количество цифр")
-        print("7. Ряд sin(x)")
-        print("8. Геометрический ряд")
-        print("9. 100 простых чисел")
-        print("0. ВЫХОД")
-        print("-"*50)
-        
-        choice = input("Ваш выбор: ").strip()
-        
-        if choice == '0':
-            print("До свидания!")
+        show_menu()
+        if dispatch_choice(input("выбрана задача: ")):
             break
-            
-        if choice not in ['1', '2', '3', '4', '5', '6', '7', '8', '9']:
-            print("Ошибка: Введите число от 0 до 9!")
-            continue
-            
-        choice = int(choice)
-        
-        try:
-            if choice == 1:
-                print("\nЗадание 1: f(x,y)")
-                x = get_float("Введите x: ")
-                y = get_float("Введите y: ")
-                result = task1(x, y)
-                print(f"f({x}, {y}) = {result}")
-                
-            elif choice == 2:
-                print("\nЗадание 2: F(a)")
-                a = get_positive_float("Введите a (>0): ")
-                result = task2(a)
-                if result is None:
-                    print("Ошибка: a должно быть > 0!")
-                else:
-                    print(f"F({a}) = {result:.6f}")
-                    
-            elif choice == 3:
-                print("\nЗадание 3: Обработка двух чисел")
-                a = get_float("Введите первое число a: ")
-                b = get_float("Введите второе число b: ")
-                result_a, result_b = task3(a, b)
-                print(f"a' = {result_a}, b' = {result_b}")
-                
-            elif choice == 4:
-                print("\nЗадание 4: Делители числа")
-                n = get_int("Введите натуральное число N: ")
-                if n <= 0:
-                    print("Ошибка: N должно быть натуральным!")
-                else:
-                    divisors = task4(n)
-                    print(f"Делители {n}: {', '.join(map(str, divisors))}")
-                    
-            elif choice == 5:
-                print("\nЗадание 5: Сумма кратных 4")
-                a = get_int("Введите A: ")
-                b = get_int("Введите B: ")
-                if a > b:
-                    print("Предупреждение: A > B, поменяем местами")
-                    a, b = b, a
-                result = task5(a, b)
-                print(f"Сумма чисел кратных 4 в [{a}, {b}] = {result}")
-                
-            elif choice == 6:
-                print("\nЗадание 6: Количество цифр")
-                n = get_int("Введите натуральное число N: ")
-                if n <= 0:
-                    print("Ошибка: N должно быть натуральным!")
-                else:
-                    result = task6(n)
-                    print(f"Количество цифр в {n}: {result}")
-                    
-            elif choice == 7:
-                print("\nЗадание 7: Ряд sin(x)")
-                x = get_float("Введите x (-π ≤ x ≤ π): ")
-                if abs(x) > math.pi:
-                    print("Предупреждение: |x| > π, результат может быть неточным")
-                result = task7(x)
-                check = math.sin(x)
-                print(f"S ≈ {result:.6f}")
-                print(f"sin({x}) = {check:.6f}")
-                print(f"Погрешность: {abs(result - check):.2e}")
-                
-            elif choice == 8:
-                print("\nЗадание 8: Геометрический ряд")
-                x = get_float("Введите x (|x| < 0.5): ")
-                if abs(x) >= 0.5:
-                    print("Ошибка: |x| должно быть < 0.5!")
-                else:
-                    result = task8(x)
-                    denom = (1 - x) * (1 + 2 * x)
-                    check = 3 / denom if denom != 0 else float('inf')
-                    print(f"S ≈ {result:.6f}")
-                    print(f"f({x}) = {check:.6f}")
-                    
-            elif choice == 9:
-                print("\nЗадание 9: 100 простых чисел")
-                primes = task9()
-                print("Первые 100 простых чисел:")
-                print(", ".join(map(str, primes[:10])))
-                print("...")
-                print(", ".join(map(str, primes[-10:])))
-                print(f"Всего найдено: {len(primes)}")
-                
-        except Exception as e:
-            print(f"Возникла ошибка: {str(e)}")
 
 if __name__ == "__main__":
     main()
