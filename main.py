@@ -10,8 +10,7 @@ def piecewise_function(x, y):
         return x - y
 
 def complex_function(a):
-    #a = 1e-15
-    if a <= 0:
+    if a <= 0 or abs(a -1 ) < 1e-15:
         return None
     arg1 = (a**2 + cmath.sqrt(a)) / (1 + (cmath.sin(a)**2) / (2*a))
     arg2 = 2.5 / (2 * cmath.log(a))
@@ -54,8 +53,7 @@ def count_digits(n):
     return len(str(n))
 
 def taylor_sin_series(x):
-    #ряд sin(x) с точностью 10^-5
-    
+    #ряд sin(x)/x с точностью 10^-5
     if x == 0:
         return 1.0
     epsilon = 1e-5
@@ -122,9 +120,9 @@ def get_int(prompt):
 def get_positive_float(prompt):
     while True:
         val = get_float(prompt)
-        if val > 0:
+        if val > 0 and not abs(val - 1.0) < 1e-15:
             return val
-        print("введите положительное число!")
+        print("не входит в область опредееления")
 
 def show_menu():
     print("выберите задания (1-9) или 0 для выхода:")
@@ -139,16 +137,18 @@ def handle_piecewise_function():
 def handle_complex_function():
     a = get_positive_float("Введите a > 0: ")
     result = complex_function(a)
-
-    c_result = complex(result) 
-    imag_part = abs(c_result.imag) 
-    print(f"Результат: {c_result.real:10.6f} + {c_result.imag:10.6f}i")
-    print(f"|imag| = {imag_part:.2e}")
+    if result is not None:
+        c_result = complex(result) 
+        imag_part = abs(c_result.imag) 
+        print(f"Результат: {c_result.real:10.6f} + {c_result.imag:10.6f}i")
+        print(f"|imag| = {imag_part:.2e}")
     
-    if  imag_part > 1e-12:  # только если есть мнимая часть
-        print(f"F({a}) = {c_result:+.6f}")  # автоматический знак
-    else:
-        print(f"F({a}) = {c_result.real:.6f}")
+        if  imag_part > 1e-12:  # только если есть мнимая часть
+            print(f"F({a}) = {c_result:+.6f}")  # автоматический знак
+        else:
+            print(f"F({a}) = {c_result.real:.6f}")
+    else:        
+        print ("не входит в область опредееления")
 
 def handle_number_processing():
     a = get_float("введите число a: ")
@@ -185,7 +185,7 @@ def handle_sin_series():
     x = get_float("Введите x (-pi ≤ x ≤ pi): ")
     #x = math.pi / 2
     if abs(x) > math.pi:
-        print("x выходит за пределы [-pi, pi]")
+        print("x выходит за пределы [-pi, pi], результата может быть менее точным")
     result = taylor_sin_series(x)
     check = math.sin(x) / x if x != 0 else 1.0
     print(f"S ≈ {result:.6f}")
@@ -193,15 +193,21 @@ def handle_sin_series():
     print(f"Погрешность: {abs(result - check):.2e}")
 
 def handle_geometric_series():
-    x = get_float("Введите x (|x| < 0.5): ")
-    if abs(x) >= 0.5:
-        print("|x| должно быть < 0.5")
-        return
+    x = get_float_geometric("Введите x (|x| < 0.5): ") 
     result = geometric_series_sum(x)
     denom = (1 - x) * (1 + 2 * x)
     check = 3 / denom
     print(f"S ≈ {result:.6f}")
     print(f"f({x}) = {check:.6f}")
+
+def get_float_geometric(prompt):
+    while True:
+        val = get_float(prompt)
+        if abs(val) < 0.5:
+            return val
+        
+        print("|x| должно быть < 0.5")
+
 
 def handle_prime_numbers():
     primes = first_hundred_primes()
@@ -235,7 +241,7 @@ def dispatch_choice(choice_str):
         case '9':
             handle_prime_numbers()
         case _:
-            print("введите число от 0 до 9!")
+            print("введите число от 0 до 9")
             return False
     return False
 
