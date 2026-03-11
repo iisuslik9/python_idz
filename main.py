@@ -5,7 +5,7 @@ def piecewise_function(x, y):
     if x > 0 and y < 0:
         return x + y
     elif x > 0 and y > 1:
-        return 1
+        return x / (y - 1)
     else:
         return x - y
 
@@ -31,7 +31,7 @@ def process_two_numbers(a, b):
         if abs(a) < abs(b):
             return (a + b) / 2, b - 1
         else:
-            return (a + b) / 2, a - 1
+            return a - 1, (a + b) / 2
 
 def find_divisors(n):
     divisors = []
