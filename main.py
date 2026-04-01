@@ -42,21 +42,16 @@ S = (Пап₂)/(В, * Ka* qa),
 4. масса металла, размещаемого на 1 м² площади склада, т (сталь в бухтах (мотках) \\mathfrak{q}_{0} = 1, 2 сталь в прутках и сортовой прокат - q_{a} = 3, 2 полосовая сталь ч 2,1; сетки в рулонах \\mathbb{Q}_{3} = 0, 4 бухты в бункерах \\mathfrak{q}_{a} = 3, 0 ).
 """
 
+from model import ArmatureWarehouseModel
+from view import ArmatureWarehouseView
+from controller import ArmatureWarehouseController
 import tkinter as tk
-from model import WarehouseModel
-from view import WarehouseView
-from controller import WarehouseController
 
-if __name__ == '__main__':
-    root = tk.Tk()
-    root.title('4 Вприант Проектирование склада арматуры')
-    root.geometry('450x350')
-    
-    model = WarehouseModel()
-    view = WarehouseView(root, None)
-    view.pack(padx=10, pady=10)
-    
-    controller = WarehouseController(model, view)
-    # controller уже привязан в __init__ контроллера
-    
-    root.mainloop()
+def main():
+    model = ArmatureWarehouseModel()
+    view = ArmatureWarehouseView()
+    controller = ArmatureWarehouseController(model, view)
+    view.start()
+
+if __name__ == "__main__":
+    main()

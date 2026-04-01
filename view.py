@@ -1,72 +1,157 @@
 import tkinter as tk
 from tkinter import ttk
-from typing import Callable
+from tkinter import filedialog, messagebox
 
-class WarehouseView(ttk.Frame):
-    def __init__(self, parent, controller: Callable):
-        super().__init__(parent)
-        self.controller = controller
-        self.result_var = tk.StringVar()
-        self.setup_ui()
+class ArmatureWarehouseView:
+    def __init__(self):
+        self.root = tk.Tk()
+        self.root.title("Проектирование склада арматуры (Вариант 4)")
+        self.root.geometry("600x700")
+        self.root.minsize(500, 600)
 
-    def setup_ui(self):
-        # Па, т
-        ttk.Label(self, text='Па (т):').grid(row=0, column=0)
-        self.Pa_entry = ttk.Entry(self)
-        self.Pa_entry.grid(row=0, column=1)
+        self.root.columnconfigure(0, weight=1)
+        self.root.rowconfigure(0, weight=1)
 
-        # В, сут
-        ttk.Label(self, text='В (сут):').grid(row=1, column=0)
-        self.V_entry = ttk.Entry(self)
-        self.V_entry.grid(row=1, column=1)
+        self._build_ui()
 
-        # Вместимость, т (для Ka)
-        ttk.Label(self, text='Вместимость (т):').grid(row=2, column=0)
-        self.capacity_entry = ttk.Entry(self)
-        self.capacity_entry.grid(row=2, column=1)
+    def _build_ui(self):
+        main_frame = ttk.Frame(self.root, padding="20")
+        main_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
+        main_frame.columnconfigure(0, weight=1)
+        main_frame.rowconfigure(6, weight=1)
 
-        # Тип арматуры (Combobox)
-        ttk.Label(self, text='Тип qa (т/м²):').grid(row=3, column=0)
-        self.type_combo = ttk.Combobox(self, values=['бухты/мотки', 'прутки', 'полосовая', 'сетки', 'бухты в бункерах'])
-        self.type_combo.grid(row=3, column=1)
+        # 1. Годовая потребность
+        input_frame1 = ttk.LabelFrame(main_frame, text="Годовая потребность в арматуре Пга, т", padding="10")
+        input_frame1.grid(row=0, column=0, sticky=(tk.W, tk.E), pady=(0, 10))
+        input_frame1.columnconfigure(1, weight=1)
 
-        # Запас п (Scale 20-25 сут)
-        ttk.Label(self, text='Запас п (сут):').grid(row=4, column=0, sticky='w')
-        self.p_var = tk.IntVar(value=22)  # Целое число
-        self.p_scale = tk.Scale(
-            self, 
-            from_=20, 
-            to=25, 
-            variable=self.p_var, 
-            orient='horizontal',
-            length=200,
-            resolution=1.0
-        )
-        self.p_scale.grid(row=4, column=1, sticky='ew')
+        ttk.Label(input_frame1, text="Значение:").grid(row=0, column=0, sticky=tk.W)
+        self.entry_pga = ttk.Entry(input_frame1, font=("Arial", 11))
+        self.entry_pga.grid(row=0, column=1, sticky=(tk.W, tk.E), padx=(10, 0))
+        ttk.Label(input_frame1, text="т", font=("Arial", 9)).grid(row=0, column=2, padx=(5, 0))
 
-        ttk.Label(self, textvariable=self.p_var).grid(row=4, column=2)
+        self.msg_pga = ttk.Label(input_frame1, text="", foreground="red", font=("Arial", 9))
+        self.msg_pga.grid(row=1, column=0, columnspan=3, sticky=tk.W, pady=(2, 0))
 
-        ttk.Button(self, text='Рассчитать', command=self.calculate).grid(row=5, column=0)
-        ttk.Button(self, text='Сохранить в XLSX', command=self.save).grid(row=5, column=1)
+        # 2. Запас арматуры (ползунок 20-25 сут)
+        input_frame2 = ttk.LabelFrame(main_frame, text="Запас арматурной стали na, сут (20-25)", padding="10")
+        input_frame2.grid(row=1, column=0, sticky=(tk.W, tk.E), pady=(0, 10))
+        input_frame2.columnconfigure(1, weight=1)
 
-    
-        # Отображение текущего значения
-        self.p_label = ttk.Label(self, textvariable=self.p_var)
-        self.p_label.grid(row=4, column=2, sticky='w')
-        ttk.Label(self, text='сут').grid(row=4, column=3)
+        self.na_var = tk.IntVar(value=22)
+        
+        scale = tk.Scale(input_frame2, 
+                        from_=20, 
+                        to=25, 
+                        variable=self.na_var, 
+                        orient=tk.HORIZONTAL, 
+                        length=300,
+                        resolution=1,  
+                        font=("Arial", 10))
+        scale.grid(row=0, column=0, sticky=tk.W, pady=5)
+
+        # 3. Годовой фонд времени
+        input_frame3 = ttk.LabelFrame(main_frame, text="Годовой фонд рабочего времени Ba, сут", padding="10")
+        input_frame3.grid(row=2, column=0, sticky=(tk.W, tk.E), pady=(0, 10))
+        input_frame3.columnconfigure(1, weight=1)
+
+        ttk.Label(input_frame3, text="Значение:").grid(row=0, column=0, sticky=tk.W)
+        self.entry_ba = ttk.Entry(input_frame3, font=("Arial", 11))
+        self.entry_ba.grid(row=0, column=1, sticky=(tk.W, tk.E), padx=(10, 0))
+        ttk.Label(input_frame3, text="сут", font=("Arial", 9)).grid(row=0, column=2, padx=(5, 0))
+
+        self.msg_ba = ttk.Label(input_frame3, text="", foreground="red", font=("Arial", 9))
+        self.msg_ba.grid(row=1, column=0, columnspan=3, sticky=tk.W, pady=(2, 0))
+
+        # 4. Вместимость склада (Combobox)
+        capacity_frame = ttk.LabelFrame(main_frame, text="Вместимость склада", padding="10")
+        capacity_frame.grid(row=3, column=0, sticky=(tk.W, tk.E), pady=(0, 10))
+        capacity_frame.columnconfigure(1, weight=1)
+
+        ttk.Label(capacity_frame, text="Тип:").grid(row=0, column=0, sticky=tk.W)
+        self.capacity_var = tk.StringVar(value="до 500т")
+        capacity_combo = ttk.Combobox(capacity_frame, textvariable=self.capacity_var, 
+                                    values=["до 500т", "свыше 500т"], state="readonly", width=15)
+        capacity_combo.grid(row=0, column=1, sticky=tk.W, padx=(10, 0))
+
+        # 5. Тип металла (Combobox)
+        metal_frame = ttk.LabelFrame(main_frame, text="Тип арматуры qa, т/м²", padding="10")
+        metal_frame.grid(row=4, column=0, sticky=(tk.W, tk.E), pady=(0, 10))
+        metal_frame.columnconfigure(1, weight=1)
+
+        ttk.Label(metal_frame, text="Тип:").grid(row=0, column=0, sticky=tk.W)
+        self.metal_var = tk.StringVar(value="сталь в прутках")
+        metal_combo = ttk.Combobox(metal_frame, textvariable=self.metal_var,
+                                 values=["сталь в бухтах", "сталь в прутках", "полосовая сталь", 
+                                        "сетки в рулонах", "бухты в бункерах"], 
+                                 state="readonly", width=20)
+        metal_combo.grid(row=0, column=1, sticky=tk.W, padx=(10, 0))
+
+        # Кнопки
+        button_frame = ttk.Frame(main_frame)
+        button_frame.grid(row=5, column=0, pady=20)
+        
+        self.calc_button = ttk.Button(button_frame, text="Рассчитать")
+        self.calc_button.pack(side=tk.LEFT, padx=(0, 10))
+        
+        self.save_button = ttk.Button(button_frame, text="Сохранить в файл", state="disabled")
+        self.save_button.pack(side=tk.LEFT)
 
         # Результат
-        ttk.Label(self, text='Площадь S (м²):').grid(row=6, column=0)
-        ttk.Label(self, textvariable=self.result_var).grid(row=6, column=1)
+        output_frame = ttk.LabelFrame(main_frame, text="Результат расчета", padding="10")
+        output_frame.grid(row=6, column=0, sticky=(tk.W, tk.E, tk.N, tk.S), pady=(0, 10))
+        output_frame.columnconfigure(0, weight=1)
+        output_frame.rowconfigure(0, weight=1)
 
-    def calculate(self):
-        self.controller.calculate()
+        self.output_text = tk.Text(output_frame, height=8, wrap=tk.WORD, font=("Consolas", 10))
+        self.output_text.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
 
-    def save(self):
-        self.controller.save('warehouse.xlsx')
+        scrollbar = ttk.Scrollbar(output_frame, orient=tk.VERTICAL, command=self.output_text.yview)
+        scrollbar.grid(row=0, column=1, sticky=(tk.N, tk.S))
+        self.output_text.configure(yscrollcommand=scrollbar.set)
 
-    def show_result(self, S: float):
-        self.result_var.set(str(S))
+    # API для Controller
+    def clear_messages(self):
+        """Очищает все красные сообщения"""
+        self.msg_pga.config(text="")
+        self.msg_ba.config(text="")
 
-    def show_error(self, msg: str):
-        tk.messagebox.showerror('Ошибка', msg)
+    def set_message(self, field, message):
+        """Устанавливает красное сообщение для поля"""
+        if field == "pga":
+            self.msg_pga.config(text=message)
+        elif field == "ba":
+            self.msg_ba.config(text=message)
+
+    def get_input(self):
+        return {
+            "annual_demand": self.entry_pga.get(),
+            "storage_days": self.na_var.get(),
+            "work_days": self.entry_ba.get(),
+            "capacity_type": self.capacity_var.get(),
+            "metal_type": self.metal_var.get()
+        }
+
+    def set_output(self, result):
+        self.clear_messages()
+        self.output_text.delete("1.0", tk.END)
+        if isinstance(result, dict):
+            self.output_text.insert(tk.END, f"Площадь склада S = {result['area']} м²\n\n")
+            self.output_text.insert(tk.END, result['details'])
+            self.save_button.config(state="normal")
+        else:
+            self.output_text.insert(tk.END, result)
+            self.save_button.config(state="disabled")
+
+    def set_handlers(self, calc_handler, save_handler):
+        self.calc_button.config(command=calc_handler)
+        self.save_button.config(command=save_handler)
+
+    def save_file_dialog(self):
+        return filedialog.asksaveasfilename(
+            defaultextension=".txt",
+            filetypes=[("Text files", "*.txt"), ("All files", "*.*")]
+        )
+
+    def start(self):
+        self.root.mainloop()
