@@ -116,6 +116,11 @@ class ArmatureWarehouseView:
         self.msg_pga.config(text="")
         self.msg_ba.config(text="")
 
+    def clear_output(self):
+        """Очищает поле результата и отключает кнопку сохранения"""
+        self.output_text.delete("1.0", tk.END)
+        self.save_button.config(state="disabled")
+
     def set_message(self, field, message):
         """Устанавливает красное сообщение для поля"""
         if field == "pga":

@@ -26,10 +26,10 @@ class ArmatureWarehouseController:
             elif "фонд времени" in result:
                 self.view.set_message("ba", result)
             self.current_result = None
+            self.view.clear_output()
         else:
             self.current_result = result
-        
-        self.view.set_output(result)
+            self.view.set_output(result)
 
     def handle_save(self):
         if self.current_result is None:
