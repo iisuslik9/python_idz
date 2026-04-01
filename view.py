@@ -43,6 +43,12 @@ class WarehouseView(ttk.Frame):
             resolution=1.0
         )
         self.p_scale.grid(row=4, column=1, sticky='ew')
+
+        ttk.Label(self, textvariable=self.p_var).grid(row=4, column=2)
+
+        ttk.Button(self, text='Рассчитать', command=self.calculate).grid(row=5, column=0)
+        ttk.Button(self, text='Сохранить в XLSX', command=self.save).grid(row=5, column=1)
+
     
         # Отображение текущего значения
         self.p_label = ttk.Label(self, textvariable=self.p_var)
