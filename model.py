@@ -52,5 +52,14 @@ class ArmatureWarehouseModel:
         
         return {
             "area": round(s, 2),
-            "details": f"S = ({pga} × {na}) / ({ba} × {kia} × {qa}) = {s:.2f} м\u00B2"
+            "details": f"S = ({pga} × {na}) / ({ba} × {kia} × {qa}) = {s:.2f} м\u00B2",
+            "input_data": {
+                "Годовая потребность (Пга), т": pga,
+                "Запас (nа), сут": na,
+                "Фонд времени (Bр), сут": ba,
+                "Вместимость склада": capacity_type,
+                "Коэффициент использования (Kиа)": kia,
+                "Тип арматуры": metal_type,
+                "Норма загрузки (qa), т/м²": qa
+            }
         }
