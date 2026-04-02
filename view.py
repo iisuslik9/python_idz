@@ -150,8 +150,12 @@ class ArmatureWarehouseView:
     def save_file_dialog(self):
         return filedialog.asksaveasfilename(
             defaultextension=".xlsx",
-            filetypes=[("Excel files", "*.xlsx"), ("All files", "*.*")],
-            title="Сохранить результат в Excel"
+            filetypes=[
+                ("Excel files", "*.xlsx"),
+                ("Word files", "*.docx"),
+                ("All files", "*.*")
+            ],
+            title="Сохранить результат"
         )
 
     def start(self):
