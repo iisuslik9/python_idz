@@ -8,9 +8,7 @@ class ArmatureWarehouseModel:
         return temp.replace('.', '', 1).isdigit()
 
     def calculate_area(self, annual_demand, storage_days, work_days, capacity_type, metal_type):
-        """Расчет площади склада по формуле S = (Пга * nа)/(Bр * Kиа * qa)"""
         
-        # Проверка годовой потребности
         if not self.is_number(annual_demand):
             return "Ошибка: годовая потребность должна быть числом"
         
@@ -18,13 +16,7 @@ class ArmatureWarehouseModel:
         if pga <= 0:
             return "Ошибка: годовая потребность должна быть положительным числом"
         
-        # Проверка запаса (хотя ползунок дает корректные значения, но на всякий случай)
-        if not self.is_number(storage_days):
-            return "Ошибка: запас должен быть числом"
-        
         na = float(storage_days)
-        if na < 20 or na > 25:
-            return "Ошибка: запас должен быть в диапазоне от 20 до 25 суток"
         
         # Проверка годового фонда времени
         if not self.is_number(work_days):
@@ -35,9 +27,9 @@ class ArmatureWarehouseModel:
             return "Ошибка: годовой фонд времени должен быть положительным числом"
 
         # Коэффициент использования площади Kиа
-        kia = 0.33 if capacity_type == "до 500т" else 0.50
+        kia = 0.33 if capacity_type == "до 500т" else 0.5
 
-        # Нормы заготовки qa, т/м²
+        # Нормы заготовки qa, т/м2
         qa_dict = {
             "сталь в бухтах": 1.2,
             "сталь в прутках": 3.2,

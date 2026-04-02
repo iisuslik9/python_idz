@@ -50,7 +50,7 @@ import tkinter as tk
 def main():
     model = ArmatureWarehouseModel()
     view = ArmatureWarehouseView()
-    controller = ArmatureWarehouseController(model, view)
+    controller = ArmatureWarehouseController(model, view) 
     view.start()
 
 if __name__ == "__main__":

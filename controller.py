@@ -17,7 +17,7 @@ class ArmatureWarehouseController:
         self.view.clear_messages() 
         data = self.view.get_input()
         
-        result = self.model.calculate_area(**data)
+        result = self.model.calculate_area(**data) # Распаковка словаря в аргументы функции
         
     
         if isinstance(result, str):
@@ -53,9 +53,8 @@ class ArmatureWarehouseController:
             except Exception as e:
                 messagebox.showerror("Ошибка", f"Не удалось сохранить файл: {e}")
 
-    def save_to_excel(self, filename, result):
-        """Сохранение результатов в Excel"""
-        data = {
+    def save_to_excel(self, filename, result): 
+        data = { 
             "Параметр": [
                 "Площадь склада (S)",
                 "Годовая потребность (Пга)",
@@ -74,15 +73,23 @@ class ArmatureWarehouseController:
                 result['input_data']['Вместимость склада'],
                 result['input_data']['Коэффициент использования (Kиа)'],
                 result['input_data']['Тип арматуры'],
-                f"{result['input_data']['Норма загрузки (qa), т/м²']} т/м²"
+                f"{result['input_data']['Норма загрузки (qa), т/м\u00B2']} т/м\u00B2"
             ]
         }
         
         df = pd.DataFrame(data)
-        df.to_excel(filename, index=False, sheet_name="Результаты")
+        writer = pd.ExcelWriter(filename, engine='xlsxwriter')
+        df.to_excel(writer, index=False, sheet_name="Результаты")
+        worksheet = writer.sheets["Результаты"]
+        
+        worksheet.set_column(0, 0, 35)
+        
+        writer.close()
+
+
+        
 
     def save_to_word(self, filename, result):
-        """Сохранение результатов в Word"""
         doc = Document()
         
         # Заголовок
@@ -92,7 +99,7 @@ class ArmatureWarehouseController:
         # Основной результат
         doc.add_heading("Площадь склада", level=1)
         result_para = doc.add_paragraph()
-        result_para.add_run(f"S = {result['area']} м²").bold = True
+        result_para.add_run(f"S = {result['area']} м\u00B2").bold = True
         
         # Формула расчета
         doc.add_heading("Формула расчета", level=1)

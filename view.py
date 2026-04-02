@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
-from tkinter import filedialog, messagebox
+from tkinter import filedialog
 
 class ArmatureWarehouseView:
     def __init__(self):
@@ -51,7 +51,7 @@ class ArmatureWarehouseView:
         scale.grid(row=0, column=0, sticky=tk.W, pady=5)
 
         # 3. Годовой фонд времени
-        input_frame3 = ttk.LabelFrame(main_frame, text="Годовой фонд рабочего времени Ba, сут", padding="10")
+        input_frame3 = ttk.LabelFrame(main_frame, text="Годовой фонд рабочего времени Bp, сут", padding="10")
         input_frame3.grid(row=2, column=0, sticky=(tk.W, tk.E), pady=(0, 10))
         input_frame3.columnconfigure(1, weight=1)
 
@@ -75,7 +75,7 @@ class ArmatureWarehouseView:
         capacity_combo.grid(row=0, column=1, sticky=tk.W, padx=(10, 0))
 
         # 5. Тип металла (Combobox)
-        metal_frame = ttk.LabelFrame(main_frame, text="Тип арматуры qa, т/м²", padding="10")
+        metal_frame = ttk.LabelFrame(main_frame, text="Тип арматуры qa, т/м\u00B2", padding="10")
         metal_frame.grid(row=4, column=0, sticky=(tk.W, tk.E), pady=(0, 10))
         metal_frame.columnconfigure(1, weight=1)
 
@@ -113,11 +113,10 @@ class ArmatureWarehouseView:
         self.msg_ba.config(text="")
 
     def clear_output(self):
-        self.output_text.delete("1.0", tk.END)
+        self.output_text.delete("1.0", tk.END) #Очистить всё поле
         self.save_button.config(state="disabled")
 
     def set_message(self, field, message):
-        """Устанавливает красное сообщение для поля"""
         if field == "pga":
             self.msg_pga.config(text=message)
         elif field == "ba":
@@ -136,7 +135,7 @@ class ArmatureWarehouseView:
         self.clear_messages()
         self.output_text.delete("1.0", tk.END)
         if isinstance(result, dict):
-            self.output_text.insert(tk.END, f"Площадь склада S = {result['area']} м²\n\n")
+            self.output_text.insert(tk.END, f"Площадь склада S = {result['area']} м\u00B2\n\n")
             self.output_text.insert(tk.END, result['details'])
             self.save_button.config(state="normal")
         else:
