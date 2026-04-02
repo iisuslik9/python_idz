@@ -106,18 +106,13 @@ class ArmatureWarehouseView:
         self.output_text = tk.Text(output_frame, height=8, wrap=tk.WORD, font=("Consolas", 10))
         self.output_text.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
 
-        scrollbar = ttk.Scrollbar(output_frame, orient=tk.VERTICAL, command=self.output_text.yview)
-        scrollbar.grid(row=0, column=1, sticky=(tk.N, tk.S))
-        self.output_text.configure(yscrollcommand=scrollbar.set)
 
     # API для Controller
     def clear_messages(self):
-        """Очищает все красные сообщения"""
         self.msg_pga.config(text="")
         self.msg_ba.config(text="")
 
     def clear_output(self):
-        """Очищает поле результата и отключает кнопку сохранения"""
         self.output_text.delete("1.0", tk.END)
         self.save_button.config(state="disabled")
 
