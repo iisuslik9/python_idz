@@ -194,9 +194,12 @@ class Depot:
         self._transpotrs.append(transport)
 
     def remove_transport(self, gos_number):
-        #todo при удаленни вывести сообщение найден ли транспорт с таким номером
-        self._transports = [t for t in self._transports if t.gos_number != gos_number]
-        return f"транспорт {gos_number} удален"
+        for t in self._transports:
+            if t.gos_number == gos_number:
+                self._transports.remove(t)
+                return f"транспорт {gos_number} удален"
+        raise ValueError(f"транспорт с номером {gos_number} не найден")
+        
 
     def get_available_transpotrs(self):
         return [t for t in self.transports if t.status == "в работе"]
