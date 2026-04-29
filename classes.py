@@ -71,13 +71,13 @@ class Transport(ABC):
 
     def __new__(cls, gos_number, *args, **kwargs):
         if gos_number in cls._exicting_transport:
-            print(f"транспорт с номером '{gos_number}' уже существует")
+            raise ValueError(f"транспорт с номером '{gos_number}' уже существует")
         
         instance = super().__new__(cls)
         cls._exicting_transport.add(gos_number)
         return instance
 
-    def __init__(self, gos_number, brand, capacity, status):
+    def __init__(self, gos_number, brand, capacity):
         self._gos_number = gos_number
         self._brand = brand
         self._capacity = capacity
@@ -99,8 +99,15 @@ class Transport(ABC):
     def status(self):
         return self._status
     
+    @status.setter
+    def status(self, value):
+        if value in ["в работе", "на ремонте"]:
+            self._status = value
+        else:
+            raise ValueError("Недопустимый статус")
+    
     @abstractmethod 
-    def start_delivery():
+    def start_delivery(self):
         pass
 
     def __str__(self): 
@@ -125,11 +132,11 @@ class Van(Transport):
         return f"Van {self.gos_number} начинает доставку (объем кузова: {self.volume} м^3)"
     
 
-    class Trailer(Transport):
-        def __init__(self, gos_number, brand, capacity, max_load, trailer_type):
-            super().__init__(gos_number, brand, capacity)
-            self._max_load = max_load
-            self._trailer_type = trailer_type
+class Trailer(Transport):
+    def __init__(self, gos_number, brand, capacity, max_load, trailer_type):
+        super().__init__(gos_number, brand, capacity)
+        self._max_load = max_load
+        self._trailer_type = trailer_type
     
     @property
     def max_load(self):
@@ -159,6 +166,46 @@ class Drone(Transport):
     def start_delivery(self):
         return f"Drone {self.gos_number} начинает доставку (дальность полёта: {self.range_km}км)"
     
+
+class Maintainable(ABC):
+    @abstractmethod
+    def perform_maintenance(self):
+        pass
+
+class VanMaintainable(Van, Maintainable):
+    def perform_maintenance(self):
+        if self.engine_type == "электричество":
+            if self.status == "на ремонте":
+                self.status = "в работе"
+                return f"Электрофургон {self.gos_number} обслужен, транспорт в работе"
+            else:
+                self.status = "на ремонте"
+                return f"Электрофургон {self.gos_number} на ремонте"
+        else:
+            return f"Фургон {self.gos_number} с бензиновым двигателем не требует обслуживания"
+
+class TrailerMaintainable(Trailer, Maintainable):
+    def perform_maintenance(self):
+        if self.status == "на ремонте":
+            self.status = "в работе"
+            self._max_load += 1 
+            return f"Прицеп {self.gos_number} обслужен, нагрузка увеличена до {self.max_load} т, транспорт в работе"
+        else:
+            self.status = "на ремонте"
+            return f"Прицеп {self.gos_number} на ремонте"
+
+class DroneMaintainable(Drone, Maintainable):
+    def perform_maintenance(self):
+        if self.payload_kg > 5:
+            if self.status == "на ремонте":
+                self.status = "в работе"
+                return f"Дрон {self.gos_number} обслужен, транспорт в работе"
+            else:
+                self.status = "на ремонте"
+                return f"Дрон {self.gos_number} на ремонте"
+        else:
+            return f"Дрон {self.gos_number} с низкой грузоподъемностью ({self.payload_kg} кг) не обслуживается"
+
 class Operator:
     def __init__(self, full_name, experience_years, license):
         self._full_name = full_name
@@ -190,10 +237,12 @@ class Depot:
 
     def add_transport(self, transport):
         if transport.gos_number in [t.gos_number for t in self._transports]:
-            raise DuplicateError(f"транспорт {transport.gos_number} уже добавлен")
-        self._transpotrs.append(transport)
+            raise ValueError(f"транспорт {transport.gos_number} уже добавлен")
+        self._transports.append(transport)
 
     def remove_transport(self, gos_number):
+        if not self._transports:
+            raise ValueError(f"депо пустое, транспорт с номером {gos_number} не найден")
         for t in self._transports:
             if t.gos_number == gos_number:
                 self._transports.remove(t)
@@ -201,28 +250,29 @@ class Depot:
         raise ValueError(f"транспорт с номером {gos_number} не найден")
         
 
-    def get_available_transpotrs(self):
+    def get_available_transports(self):
         return [t for t in self.transports if t.status == "в работе"]
     
 class DeliveryRoute():
-    def __init__(self, id_route, distance_km, delivery_points):
+    def __init__(self, route_id, distance_km, delivery_points):
         self._route_id = route_id
         self._distance_km = distance_km
         self._delivery_points = delivery_points
     
     @property
-    def route_id():
+    def route_id(self):
         return self._route_id
 
     @property
-    def distance_km():
+    def distance_km(self):
         return self._distance_km
 
     @property
-    def delivery_points():
+    def delivery_points(self):
         return self._delivery_points.copy()
 
     def get_delivery_details(self):
+        points = ", ".join(self.delivery_points)
         return f"маршрут {self.route_id}: {self.distance_km}км, точки: {points}"
 
 
@@ -235,6 +285,17 @@ class LogisticsCompany:
     
     def add_transport(self, transport):
         self.depot.add_transport(transport)
+
+    
+    def add_operator(self, operator: Operator):
+        if operator.full_name in self.operators:
+            raise ValueError(f"Оператор {operator.full_name} уже существует")
+        self.operators[operator.full_name] = operator
+
+    def remove_operator(self, operator_name: str):
+        if operator_name not in self.operators:
+            raise ValueError(f"Оператор {operator_name} не найден")
+        del self.operators[operator_name]
     
     def assign_route(self, transport, route):
         print(f"{transport.start_delivery()} по маршруту {route.route_id}")
@@ -247,10 +308,10 @@ class LogisticsCompany:
         op = self.operators[operator_name]
         transport_obj = None
         for t in self.depot.transports:
-        if t.license_plate == transport_license:
-            transport_obj = t
-            break
-    
+            if t.gos_number == gos_number:
+                transport_obj = t
+                break
+
         if transport_obj:
             print(op.operate_vehicle(transport_obj))
 
