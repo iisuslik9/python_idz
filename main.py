@@ -1,7 +1,7 @@
-from classes import Van, Trailer, Drone
-from classes import VanMaintainable, TrailerMaintainable, DroneMaintainable
-from classes import Operator, Depot, DeliveryRoute, LogisticsCompany
-from classes import SafetyRegulations
+from model import Van, Trailer, Drone
+#from interface import VanMaintainable, TrailerMaintainable, DroneMaintainable
+from service import Operator, Depot, DeliveryRoute, LogisticsCompany
+from service import SafetyRegulations
 
 
 def main():
@@ -17,7 +17,7 @@ def main():
     print(trailer1)
     print(drone1)
 
-    # 1.1 Попытка создать дубликат по номеру 
+    # 1.1 создать дубликат по номеру 
     print("\nПопытка создать дубликат номера:")
     try:
         van2 = Van("A123BC77", "Ford", 8, 30.0, "электричество")
@@ -25,7 +25,7 @@ def main():
         print("Ошибка:", e)
 
     # 1.2 Проверка статуса через property
-    print("\nПроверка статуса (инкапсуляция + property):")
+    print("\nПроверка статуса:")
     van1.status = "на ремонте"
     print(van1.status)
     try:
@@ -44,10 +44,10 @@ def main():
     # 3. Интерфейс Maintainable и полиморфизм
     print("\n3. Проверка интерфейса Maintainable (разные варианты perform_maintenance):")
 
-    van_maint_elec = VanMaintainable("D999ZZ77", "Tesla", 8, 40.0, "электричество")
-    van_maint_benz = VanMaintainable("E111EE77", "Ford", 8, 35.0, "бензин")
-    trailer_maint = TrailerMaintainable("F222FF77", "Scania", 18, 20.0, "открытый")
-    drone_maint = DroneMaintainable("G333GG77", "Parrot", 4, 80.0, 7.0)
+    van_maint_elec = Van("D999ZZ77", "Tesla", 8, 40.0, "электричество")
+    van_maint_benz = Van("E111EE77", "Ford", 8, 35.0, "бензин")
+    trailer_maint = Trailer("F222FF77", "Scania", 18, 20.0, "открытый")
+    drone_maint = Drone("G333GG77", "Parrot", 4, 80.0, 7.0)
 
     maintainables = [van_maint_elec, van_maint_benz, trailer_maint, drone_maint]
 
@@ -163,21 +163,21 @@ def main():
 
 
 
-    # 1. Edge‑кейс: дрон с низкой грузоподъёмностью, который не обслуживается
+    # 1.  дрон с низкой грузоподъёмностью, который не обслуживается
     print("1. Дрон с низкой грузоподъёмностью (не обслуживается):")
-    low_payload_drone = DroneMaintainable(
+    low_payload_drone = Drone(
         gos_number="H444HH77",
         brand="TinyDrone",
         capacity=1,
         range_km=10.0,
-        payload_kg=2.0    # меньше 5 → не обслуживается
+        payload_kg=2.0    # меньше 5  не обслуживается
     )
     print("До:", low_payload_drone, f"[грузоподъёмность={low_payload_drone.payload_kg} кг]")
     result = low_payload_drone.perform_maintenance()
     print("→ perform_maintenance:", result)
     print("После:", low_payload_drone, f"[статус={low_payload_drone.status}]")
 
-    # 1.1 вручную установить статус и снова обслужить
+    # вручную установить статус и снова обслужить
     print("\n1.1 Попытка вручную перевести дрон с низкой грузоподъёмностью в любой статус и обслужить:")
     low_payload_drone.status = "на ремонте"   # принудительно ставим
     print("Статус перед обслуживанием:", low_payload_drone.status)
@@ -187,7 +187,7 @@ def main():
 
     # 2. дрон с грузоподъёмностью ровно 5 (граница правила)
     print("\n2. Дрон с грузоподъёмностью ровно 5 кг (граница обслуживания):")
-    border_drone = DroneMaintainable(
+    border_drone = Drone(
         gos_number="I555II77",
         brand="BorderDrone",
         capacity=4,
@@ -196,13 +196,13 @@ def main():
     )
     print("До:", border_drone, f"[грузоподъёмность={border_drone.payload_kg} кг]")
     result = border_drone.perform_maintenance()
-    print("→ perform_maintenance:", result)
+    print("  perform_maintenance:", result)
     print("После:", border_drone, f"[статус={border_drone.status}]")
 
-    # 3. дрон с payload  0 (теоретический минимум)
-    print("\n3. Дрон с грузоподъёмностью 0 кг (min edge):")
+    # 3. дрон с payload  0 
+    print("\n3. Дрон с грузоподъёмностью 0 кг :")
     try:
-        zero_payload_drone = DroneMaintainable(
+        zero_payload_drone = Drone(
             gos_number="J000JJ77",
             brand="ZeroPayload",
             capacity=3,
@@ -218,7 +218,7 @@ def main():
 
     # 4.  дрон переведён в 
     print("\n4. Попытка обслужить дрон с неизвестным статусом:")
-    valid_drone = DroneMaintainable(
+    valid_drone = Drone(
         gos_number="K111KK77",
         brand="TestDrone",
         capacity=4,
@@ -226,7 +226,7 @@ def main():
         payload_kg=10.0   # обслуживается
     )
     print("До корректного статуса:", valid_drone.status)
-    # вручную устанавливаем недопустимый статус (через setter)
+    # устанавливаем недопустимый статус (через setter)
     try:
         valid_drone.status = "тестовый статус"
     except ValueError as e:
@@ -242,7 +242,7 @@ def main():
     # 5. попытка обслужить ван без электричество/бензин двигателя
     print("\n5. Ван с нестандартным типом двигателя (не 'электричество' и не 'бензин'):")
     try:
-        weird_van = VanMaintainable(
+        weird_van = Van(
             gos_number="L999LL77",
             brand="WeirdVan",
             capacity=12,
@@ -258,7 +258,7 @@ def main():
 
     # 6. van в статусе невалидный (через setter)
     print("\n6. van с неизвестным статусом (через setter):")
-    test_van = VanMaintainable(
+    test_van = Van(
         gos_number="M111MM77",
         brand="TestVan",
         capacity=10,
@@ -281,7 +281,7 @@ def main():
     # 7. прицеп с максимальной нагрузкой 0 или 1 т
     print("\n7. Прицеп с граничной нагрузкой (0 и 1 т):")
     try:
-        trailer_zero = TrailerMaintainable(
+        trailer_zero = Trailer(
             gos_number="N000NN77",
             brand="ZeroLoad",
             capacity=15,
@@ -296,7 +296,7 @@ def main():
     except ValueError as e:
         print("Ошибка при создании прицепа с max_load=0:", e)
 
-    trailer_one = TrailerMaintainable(
+    trailer_one = Trailer(
         gos_number="N111NN77",
         brand="OneTonne",
         capacity=16,
