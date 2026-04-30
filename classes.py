@@ -78,6 +78,12 @@ class Transport(ABC):
         return instance
 
     def __init__(self, gos_number, brand, capacity):
+        if not isinstance(gos_number, str) or not gos_number.strip():
+            raise ValueError("Госномер должен быть непустой строкой")
+        if not isinstance(brand, str) or not brand.strip():
+            raise ValueError("Бренд должен быть непустой строкой")
+        if not isinstance(capacity, (int, float)) or capacity <= 0:
+            raise ValueError("Вместимость должна быть положительным числом")
         self._gos_number = gos_number
         self._brand = brand
         self._capacity = capacity
@@ -117,6 +123,10 @@ class Transport(ABC):
 class Van(Transport):
     def __init__(self, gos_number, brand, capacity, volume, engine_type):
         super().__init__(gos_number, brand, capacity)
+        if not isinstance(volume, (int, float)) or volume <= 0:
+            raise ValueError("Объем кузова должен быть положительным числом")
+        if engine_type not in ["бензин", "электричество"]:
+            raise ValueError("Тип двигателя должен быть 'бензин' или 'электричество'")
         self._volume = volume
         self._engine_type = engine_type
     
@@ -135,6 +145,10 @@ class Van(Transport):
 class Trailer(Transport):
     def __init__(self, gos_number, brand, capacity, max_load, trailer_type):
         super().__init__(gos_number, brand, capacity)
+        if not isinstance(max_load, (int, float)) or max_load <= 0:
+            raise ValueError("Максимальная нагрузка должна быть положительным числом")
+        if trailer_type not in ["рефрижератор", "открытый"]:
+            raise ValueError("Тип прицепа должен быть 'рефрижератор' или 'открытый'")
         self._max_load = max_load
         self._trailer_type = trailer_type
     
@@ -152,6 +166,10 @@ class Trailer(Transport):
 class Drone(Transport):
     def __init__(self, gos_number, brand, capacity, range_km, payload_kg):
         super().__init__(gos_number, brand, capacity)
+        if not isinstance(range_km, (int, float)) or range_km <= 0 or range_km > 1000:
+            raise ValueError("Дальность полета должна быть положительным числом до 1000 км")
+        if not isinstance(payload_kg, (int, float)) or payload_kg <= 0 or payload_kg > 50:
+            raise ValueError("Грузоподъемность должна быть положительным числом до 50 кг")
         self._range_km = range_km
         self._payload_kg = payload_kg
     
@@ -208,6 +226,12 @@ class DroneMaintainable(Drone, Maintainable):
 
 class Operator:
     def __init__(self, full_name, experience_years, license):
+        if not isinstance(full_name, str) or not full_name.strip():
+            raise ValueError("ФИО должно быть непустой строкой")
+        if not isinstance(experience_years, int) or experience_years < 0:
+            raise ValueError("Опыт работы должен быть неотрицательным целым числом")
+        if license not in ["грузовой транспорт", "дроны"]:
+            raise ValueError("Лицензия должна быть 'грузовой транспорт' или 'дроны'")
         self._full_name = full_name
         self._experience_years = experience_years
         self._license = license
@@ -255,6 +279,12 @@ class Depot:
     
 class DeliveryRoute():
     def __init__(self, route_id, distance_km, delivery_points):
+        if not isinstance(route_id, str) or not route_id.strip():
+            raise ValueError("Идентификатор маршрута должен быть непустой строкой")
+        if not isinstance(distance_km, (int, float)) or distance_km <= 0:
+            raise ValueError("Расстояние должно быть положительным числом")
+        if not isinstance(delivery_points, list) or not delivery_points or not all(isinstance(p, str) and p.strip() for p in delivery_points):
+            raise ValueError("Точки доставки должны быть непустым списком непустых строк")
         self._route_id = route_id
         self._distance_km = distance_km
         self._delivery_points = delivery_points
