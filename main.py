@@ -5,7 +5,7 @@ from classes import SafetyRegulations
 
 
 def main():
-    print("=== Проверка всех требований ООП и работоспособности ===\n")
+
 
     # 1. Проверка Transport: __new__, __str__, status, дубли
     print("1. Проверка базового класса Transport и дублирования номера:")
@@ -17,7 +17,7 @@ def main():
     print(trailer1)
     print(drone1)
 
-    # 1.1 Попытка создать дубликат по номеру (должно быть исключение)
+    # 1.1 Попытка создать дубликат по номеру 
     print("\nПопытка создать дубликат номера:")
     try:
         van2 = Van("A123BC77", "Ford", 8, 30.0, "электричество")
@@ -53,7 +53,7 @@ def main():
 
     for m in maintainables:
         print("До ТО:", m, f"[статус={m.status}]")
-        print("→ perform_maintenance:", m.perform_maintenance())
+        print("  perform_maintenance:", m.perform_maintenance())
         print("После:", m, f"[статус={m.status}]\n")
 
 
@@ -161,11 +161,7 @@ def main():
         print(" -", r)
 
 
-    # 9. Дополнительная проверка Exception Handling
-    print("\n9. Проверка обработки исключений:")
-    print("Уже проверены: дубли транспорта, дубли оператора, несуществующий оператор, несуществующий транспорт при удалении.")
 
-      print("=== ДОПОЛНИТЕЛЬНЫЕ EDGE-КЕЙСЫ ===\n")
 
     # 1. Edge‑кейс: дрон с низкой грузоподъёмностью, который не обслуживается
     print("1. Дрон с низкой грузоподъёмностью (не обслуживается):")
@@ -181,29 +177,29 @@ def main():
     print("→ perform_maintenance:", result)
     print("После:", low_payload_drone, f"[статус={low_payload_drone.status}]")
 
-    # 1.1 Попробуем вручную установить статус и снова обслужить
+    # 1.1 вручную установить статус и снова обслужить
     print("\n1.1 Попытка вручную перевести дрон с низкой грузоподъёмностью в любой статус и обслужить:")
     low_payload_drone.status = "на ремонте"   # принудительно ставим
     print("Статус перед обслуживанием:", low_payload_drone.status)
     result = low_payload_drone.perform_maintenance()
-    print("→ perform_maintenance:", result)
+    print(" perform_maintenance:", result)
     print("Статус после:", low_payload_drone.status)   # должен остаться "на ремонте"
 
-    # 2. Edge‑кейс: дрон с грузоподъёмностью ровно 5 (граница правила)
+    # 2. дрон с грузоподъёмностью ровно 5 (граница правила)
     print("\n2. Дрон с грузоподъёмностью ровно 5 кг (граница обслуживания):")
     border_drone = DroneMaintainable(
         gos_number="I555II77",
         brand="BorderDrone",
         capacity=4,
         range_km=60.0,
-        payload_kg=5.0    # строго равно 5 → по вашему правилу не обслуживается
+        payload_kg=5.0   
     )
     print("До:", border_drone, f"[грузоподъёмность={border_drone.payload_kg} кг]")
     result = border_drone.perform_maintenance()
     print("→ perform_maintenance:", result)
     print("После:", border_drone, f"[статус={border_drone.status}]")
 
-    # 3. Edge‑кейс: дрон с payload = 0 (теоретический минимум)
+    # 3. дрон с payload = 0 (теоретический минимум)
     print("\n3. Дрон с грузоподъёмностью 0 кг (min edge):")
     zero_payload_drone = DroneMaintainable(
         gos_number="J000JJ77",
@@ -217,7 +213,7 @@ def main():
     print("→ perform_maintenance:", result)
     print("После:", zero_payload_drone, f"[статус={zero_payload_drone.status}]")
 
-    # 4. Edge‑кейс: дрон переведён в “странное” состояние (например, через __status установкой)
+    # 4.  дрон переведён в 
     print("\n4. Попытка обслужить дрон с неизвестным статусом:")
     valid_drone = DroneMaintainable(
         gos_number="K111KK77",
@@ -237,10 +233,10 @@ def main():
     valid_drone.status = "на ремонте"
     print("После установки корректного статуса:", valid_drone.status)
     result = valid_drone.perform_maintenance()
-    print("→ perform_maintenance:", result)
+    print("  perform_maintenance:", result)
     print("Конечный статус:", valid_drone.status)
 
-    # 5. Edge‑кейс: попытка обслужить ван без “электричество/бензин” двигателя
+    # 5. попытка обслужить ван без электричество/бензин двигателя
     print("\n5. Ван с нестандартным типом двигателя (не 'электричество' и не 'бензин'):")
     weird_van = VanMaintainable(
         gos_number="L999LL77",
@@ -251,11 +247,11 @@ def main():
     )
     print("До:", weird_van, f"[двигатель={weird_van.engine_type}]")
     result = weird_van.perform_maintenance()
-    print("→ perform_maintenance:", result)   # должна быть строка про “не требует обслуживания”
+    print("→ perform_maintenance:", result)   # не требует обслуживания
     print("После:", weird_van, f"[статус={weird_van.status}]")
 
-    # 6. Edge‑кейс: ван в статусе "невалидный" (через setter)
-    print("\n6. Ван с неизвестным статусом (через setter):")
+    # 6. van в статусе невалидный (через setter)
+    print("\n6. van с неизвестным статусом (через setter):")
     test_van = VanMaintainable(
         gos_number="M111MM77",
         brand="TestVan",
@@ -273,10 +269,10 @@ def main():
     test_van.status = "на ремонте"
     print("После валидного статуса:", test_van.status)
     result = test_van.perform_maintenance()
-    print("→ perform_maintenance:", result)
+    print("  perform_maintenance:", result)
     print("Конечный статус:", test_van.status)
 
-    # 7. Edge‑кейс: прицеп с максимальной нагрузкой 0 или 1 т
+    # 7. прицеп с максимальной нагрузкой 0 или 1 т
     print("\n7. Прицеп с граничной нагрузкой (0 и 1 т):")
     trailer_zero = TrailerMaintainable(
         gos_number="N000NN77",
@@ -300,14 +296,6 @@ def main():
         print("→ perform_maintenance:", result)
         print(f"После: {t} (макс нагрузка {t.max_load} т, статус {t.status})\n")
 
-    # 8. Edge‑кейс: попытка добавить в Depot транспорт с неправильным типом
-    # (если вы решите в будущем добавить проверку типа в LogisticsCompany)
-    print("\n8. Попытка добавить в Depot/Company не транспорт (если такая проверка будет добавлена):")
-    # пример — если вы добавите в LogisticsCompany:
-    #   if not isinstance(transport, Transport): ...
-    # здесь можно будет протестировать
-
-    print("=== ВСЕ EDGE-КЕЙСЫ ПРОВЕРЕНЫ ===\n")
 
 if __name__ == "__main__":
     main()
