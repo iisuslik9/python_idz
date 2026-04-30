@@ -199,19 +199,22 @@ def main():
     print("→ perform_maintenance:", result)
     print("После:", border_drone, f"[статус={border_drone.status}]")
 
-    # 3. дрон с payload = 0 (теоретический минимум)
+    # 3. дрон с payload  0 (теоретический минимум)
     print("\n3. Дрон с грузоподъёмностью 0 кг (min edge):")
-    zero_payload_drone = DroneMaintainable(
-        gos_number="J000JJ77",
-        brand="ZeroPayload",
-        capacity=3,
-        range_km=50.0,
-        payload_kg=0.0
-    )
-    print("До:", zero_payload_drone, f"[грузоподъёмность={zero_payload_drone.payload_kg} кг]")
-    result = zero_payload_drone.perform_maintenance()
-    print("→ perform_maintenance:", result)
-    print("После:", zero_payload_drone, f"[статус={zero_payload_drone.status}]")
+    try:
+        zero_payload_drone = DroneMaintainable(
+            gos_number="J000JJ77",
+            brand="ZeroPayload",
+            capacity=3,
+            range_km=50.0,
+            payload_kg=0.0
+        )
+        print("До:", zero_payload_drone, f"[грузоподъёмность={zero_payload_drone.payload_kg} кг]")
+        result = zero_payload_drone.perform_maintenance()
+        print(" perform_maintenance:", result)
+        print("После:", zero_payload_drone, f"[статус={zero_payload_drone.status}]")
+    except ValueError as e:
+        print("Ошибка при создании дрона с payload=0:", e)
 
     # 4.  дрон переведён в 
     print("\n4. Попытка обслужить дрон с неизвестным статусом:")
@@ -238,17 +241,20 @@ def main():
 
     # 5. попытка обслужить ван без электричество/бензин двигателя
     print("\n5. Ван с нестандартным типом двигателя (не 'электричество' и не 'бензин'):")
-    weird_van = VanMaintainable(
-        gos_number="L999LL77",
-        brand="WeirdVan",
-        capacity=12,
-        volume=45.0,
-        engine_type="водород"   # ни “электричество”, ни “бензин”
-    )
-    print("До:", weird_van, f"[двигатель={weird_van.engine_type}]")
-    result = weird_van.perform_maintenance()
-    print("→ perform_maintenance:", result)   # не требует обслуживания
-    print("После:", weird_van, f"[статус={weird_van.status}]")
+    try:
+        weird_van = VanMaintainable(
+            gos_number="L999LL77",
+            brand="WeirdVan",
+            capacity=12,
+            volume=45.0,
+            engine_type="водород"   
+        )
+        print("До:", weird_van, f"[двигатель={weird_van.engine_type}]")
+        result = weird_van.perform_maintenance()
+        print(" perform_maintenance:", result)   # не требует обслуживания
+        print("После:", weird_van, f"[статус={weird_van.status}]")
+    except ValueError as e:
+        print("Ошибка при создании вана с нестандартным двигателем:", e)
 
     # 6. van в статусе невалидный (через setter)
     print("\n6. van с неизвестным статусом (через setter):")
@@ -274,13 +280,22 @@ def main():
 
     # 7. прицеп с максимальной нагрузкой 0 или 1 т
     print("\n7. Прицеп с граничной нагрузкой (0 и 1 т):")
-    trailer_zero = TrailerMaintainable(
-        gos_number="N000NN77",
-        brand="ZeroLoad",
-        capacity=15,
-        max_load=0.0,
-        trailer_type="открытый"
-    )
+    try:
+        trailer_zero = TrailerMaintainable(
+            gos_number="N000NN77",
+            brand="ZeroLoad",
+            capacity=15,
+            max_load=0.0,
+            trailer_type="открытый"
+        )
+        print(f"До: {trailer_zero} (макс нагрузка {trailer_zero.max_load} т)")
+        trailer_zero.status = "на ремонте"
+        result = trailer_zero.perform_maintenance()
+        print(" perform_maintenance:", result)
+        print(f"После: {trailer_zero} (макс нагрузка {trailer_zero.max_load} т, статус {trailer_zero.status})\n")
+    except ValueError as e:
+        print("Ошибка при создании прицепа с max_load=0:", e)
+
     trailer_one = TrailerMaintainable(
         gos_number="N111NN77",
         brand="OneTonne",
@@ -288,13 +303,11 @@ def main():
         max_load=1.0,
         trailer_type="рефрижератор"
     )
-
-    for t in [trailer_zero, trailer_one]:
-        print(f"До: {t} (макс нагрузка {t.max_load} т)")
-        t.status = "на ремонте"
-        result = t.perform_maintenance()
-        print("→ perform_maintenance:", result)
-        print(f"После: {t} (макс нагрузка {t.max_load} т, статус {t.status})\n")
+    print(f"До: {trailer_one} (макс нагрузка {trailer_one.max_load} т)")
+    trailer_one.status = "на ремонте"
+    result = trailer_one.perform_maintenance()
+    print(" perform_maintenance:", result)
+    print(f"После: {trailer_one} (макс нагрузка {trailer_one.max_load} т, статус {trailer_one.status})\n")
 
 
 if __name__ == "__main__":
