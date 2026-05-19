@@ -27,22 +27,27 @@ class SQLRepository(BaseRepository):
     # ==========================================
     # МЕТОДЫ ДОБАВЛЕНИЯ ЗАПИСЕЙ В ТАБЛИЦЫ
     # ==========================================
-    def add_warehouse(self, warehouse_id: int, name: str, location: str, capacity: float) -> int:
+    def add_warehouse(self, name: str, location: str, capacity: float) -> int:
         with self._get_connection() as conn:
             with conn.cursor() as cur:
                 try:
-                    # Проверяем занятость ID
-                    cur.execute("SELECT id FROM warehouse WHERE id = %s;", (warehouse_id,))
-                    if cur.fetchone():
-                        raise DuplicateEntityError(f"Склад с ID {warehouse_id} уже существует.")
-
-                    # Передаем id в блок INSERT вручную
+                    # 1. Проверяем дубликат склада по имени и адресу
                     cur.execute(
-                        "INSERT INTO warehouse (id, name, location, capacity) VALUES (%s, %s, %s, %s) RETURNING id;",
-                        (warehouse_id, name, location, capacity)
+                        "SELECT id FROM warehouse WHERE name = %s AND location = %s;", 
+                        (name, location)
                     )
-                    return cur.fetchone()['id']
-                except (DuplicateEntityError, EntityNotFoundError):
+                    if cur.fetchone():
+                        raise DuplicateEntityError(f"Склад '{name}' по адресу '{location}' уже существует.")
+
+                    # 2. Вставка записи
+                    cur.execute(
+                        "INSERT INTO warehouse (name, location, capacity) VALUES (%s, %s, %s) RETURNING id;",
+                        (name, location, capacity)
+                    )
+                    warehouse_id = cur.fetchone()['id']
+                    conn.commit()
+                    return warehouse_id
+                except (DuplicateEntityError, EntityNotFoundError, InvalidStatusError):
                     raise
                 except Exception as e:
                     conn.rollback()
@@ -275,3 +280,17 @@ class SQLRepository(BaseRepository):
                 except Exception as e:
                     conn.rollback()
                     raise e
+
+    def get_warehouse_capacity(self, warehouse_id: int) -> float:
+        with self._get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT capacity FROM warehouse WHERE id = %s;", (warehouse_id,))
+                res = cur.fetchone()
+                return res['capacity'] if res else 0.0
+
+    def get_shipment_weight(self, shipment_id: int) -> float:
+        with self._get_connection() as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT weight FROM shipment WHERE id = %s;", (shipment_id,))
+                res = cur.fetchone()
+                return res['weight'] if res else 0.0

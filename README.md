@@ -26,7 +26,7 @@ ShipmentDriver).
 не менее 10 связей между грузами и водителями (назначение доставок).
 
 
-
+pip freeze > requirements.txt   
 
 
 Возвращает данные в виде словарей (dict), благодаря чему верхние слои приложения даже не заметят, что мы сменили ORM на сырой SQL.
@@ -39,8 +39,7 @@ alembic init alembic в корне проекта
  В alembic/env.py импортируйте Base.metadata из orm_models.py для автогенерации.
  
  
- Найдите в файле строку sqlalchemy.url и укажите в ней строку подключения к вашей PostgreSQL: sqlalchemy.url =postgresql://postgres:mysecret@localhost:5433/logistic_company
-
+ Найдите в файле строку sqlalchemy.url и укажите в ней строку подключения к вашей PostgreSQL: sqlalchemy.url = postgresql://postgres:1@localhost:5433/logistic_company
  # 1. Импортируем базовый класс и сами модели, чтобы Alembic их прочитал
 from database.orm_models import Base
 
@@ -50,14 +49,13 @@ target_metadata = Base.metadata
   
  
  
- Миграция 1: Создайте первую миграцию (alembic revision --autogenerate -m "Init tables"), которая создаст таблицы Warehouse, Shipment, Driver, ShipmentDriver. Примените её: alembic upgrade head.
- 
- 
- 
- Убедитесь, что в СУБД создана пустая база данных logistic_company.Выполните команду автоматической генерации первой миграции:alembic revision --autogenerate -m "Init tables"
- 
+ Миграция 1:  Убедитесь, что в СУБД создана пустая база данных logistic_company. Создайте первую миграцию (alembic revision --autogenerate -m "Init tables"), которая создаст таблицы Warehouse, Shipment, Driver, ShipmentDriver. Примените её: alembic upgrade head.
+  
  
  
  
  
  Миграция 2: Вручную или через изменение моделей добавьте новое поле (например, в Warehouse добавьте поле phone VARCHAR(20) или в Driver поле is_active со значением по умолчанию). Сгенерируйте и примените вторую миграцию.Протестируйте откат: alembic downgrade -1, а затем верните обратно alembic upgrade head.
+
+
+ 💡 Как протестировать переключение «на лету»?Запустите main.py, выберите режим 1 (SQL).Создайте Склад №100 и добавьте туда пару грузов.Нажмите 0, чтобы выйти в главное меню, и выберите режим 2 (ORM).Зайдите в пункт меню 5 (Показать грузы) и введите ID 100. Вы увидите те же самые грузы!

@@ -51,5 +51,14 @@ class BaseRepository(ABC):
         pass
 
     @abstractmethod
-    def get_deliveries_count_by_driver(self):
+    def get_driver_delivery_counts(self):
+        pass
+
+
+    @abstractmethod
+    def get_warehouse_capacity(self, warehouse_id):
+        pass
+
+    @abstractmethod
+    def get_shipment_weight(self, shipment_id):
         pass

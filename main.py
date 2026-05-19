@@ -9,17 +9,15 @@ from service.exceptions import (
     DuplicateEntityError, 
     EntityNotFoundError, 
     InvalidStatusError,
-    VALID_STATUSES
+    VALID_STATUSES,
+    WarehouseCapacityExceededError
 )
 
 # =====================================================================
-# НАСТРОЙКИ ПОДКЛЮЧЕНИЯ К БАЗЕ ДАННЫХ (Укажите свои данные)
+# НАСТРОЙКИ ПОДКЛЮЧЕНИЯ К БАЗЕ ДАННЫХ
 # =====================================================================
-# Формат DSN для библиотеки psycopg2 (Режим SQL)
-DB_DSN_SQL = "host=localhost dbname=logistic_db user=postgres password=mysecret password=mysecret"
-
-# Формат URL для библиотеки SQLAlchemy (Режим ORM)
-DB_URL_ORM = "postgresql://postgres:mysecret@localhost:5432/logistic_db"
+DB_DSN_SQL = "host=localhost dbname=logistic_company user=postgres password=1 port=5433"
+DB_URL_ORM = "postgresql://postgres:1@localhost:5433/logistic_company"
 
 
 def choose_database_mode():
@@ -37,7 +35,7 @@ def choose_database_mode():
         choice = input("Введите цифру: ").strip()
         
         if choice == "1":
-            print("\n[Система] Инициализация... Выбран режим: СЫРОЙ SQL.\n")
+            print("\n[Система] Инициализация... Выбран режим: SQL.\n")
             return SQLRepository(DB_DSN_SQL)
         elif choice == "2":
             print("\n[Система] Инициализация... Выбран режим: SQLAlchemy ORM.\n")
@@ -53,7 +51,7 @@ def run_console_ui(service: LogisticsService):
     """Главный цикл консольного интерфейса (Слой UI)."""
     while True:
         print("\n==================== МЕНЮ ОПЕРАЦИЙ ====================")
-        print("1. Добавить склад (Warehouse) — [ID вводится вручную]")
+        print("1. Добавить склад (Warehouse)")
         print("2. Добавить груз (Shipment)")
         print("3. Добавить водителя (Driver)")
         print("4. Назначить водителя на доставку груза (ShipmentDriver)")
@@ -70,16 +68,12 @@ def run_console_ui(service: LogisticsService):
         try:
             # 1. ДОБАВИТЬ СКЛАД
             if choice == "1":
-                wh_id = int(input("Введите уникальный ID склада (число): "))
-                name = input("Введите название склада (например, 'Центральный'): ").strip()
-                location = input("Введите адрес/локацию склада: ").strip()
+                name = input("Введите название склада: ").strip()
+                location = input("Введите адрес склада: ").strip()
                 capacity = float(input("Введите общую вместимость склада (тонн): "))
                 
-                if not name or not location:
-                    raise ValueError("Название и локация склада не могут быть пустыми.")
-                
-                # Вызываем метод через сервис (бизнес-логику)
-                res_id = service.repository.add_warehouse(wh_id, name, location, capacity)
+                # Вызов строго через метод сервиса
+                res_id = service.register_new_warehouse(name, location, capacity)
                 print(f"✅ [УСПЕХ]: Склад успешно создан. Присвоен ID: {res_id}")
                 
             # 2. ДОБАВИТЬ ГРУЗ
@@ -90,12 +84,8 @@ def run_console_ui(service: LogisticsService):
                 status = input("Введите статус груза: ").strip()
                 wh_id = int(input("Введите ID склада, на котором находится груз: "))
                 
-                if not tracking:
-                    raise ValueError("Трек-номер груза не может быть пустым.")
-                if weight <= 0:
-                    raise ValueError("Вес груза должен быть строго больше нуля.")
-                
-                res_id = service.repository.add_shipment(tracking, weight, status, wh_id)
+                # Вызов строго через метод сервиса
+                res_id = service.register_new_shipment(tracking, weight, status, wh_id)
                 print(f"✅ [УСПЕХ]: Груз зарегистрирован в системе. Присвоен ID: {res_id}")
                 
             # 3. ДОБАВИТЬ ВОДИТЕЛЯ
@@ -103,10 +93,8 @@ def run_console_ui(service: LogisticsService):
                 name = input("Введите ФИО водителя: ").strip()
                 license_num = input("Введите уникальный номер водительской лицензии: ").strip()
                 
-                if not name or not license_num:
-                    raise ValueError("ФИО водителя и номер лицензии не могут быть пустыми.")
-                    
-                res_id = service.repository.add_driver(name, license_num)
+                # Вызов строго через метод сервиса
+                res_id = service.register_new_driver(name, license_num)
                 print(f"✅ [УСПЕХ]: Водитель успешно добавлен. Присвоен ID: {res_id}")
                 
             # 4. НАЗНАЧИТЬ ВОДИТЕЛЯ НА ДОСТАВКУ
@@ -120,13 +108,16 @@ def run_console_ui(service: LogisticsService):
                 else:
                     delivery_date = datetime.now().date()
                     
-                res_id = service.repository.add_shipment_driver(shipment_id, driver_id, delivery_date)
+                # Вызов строго через метод сервиса
+                res_id = service.assign_driver_to_shipment(shipment_id, driver_id, delivery_date)
                 print(f"✅ [УСПЕХ]: Назначение выполнено. ID записи доставки: {res_id}")
                 
             # 5. ПОКАЗАТЬ ГРУЗЫ НА СКЛАДЕ
             elif choice == "5":
                 wh_id = int(input("Введите ID склада для вывода списка грузов: "))
-                shipments = service.repository.get_shipments_by_warehouse(wh_id)
+                
+                # Вызов строго через метод сервиса
+                shipments = service.get_warehouse_inventory(wh_id)
                 
                 if not shipments:
                     print(f"ℹ️ На складе №{wh_id} в данный момент нет ни одного груза.")
@@ -149,12 +140,14 @@ def run_console_ui(service: LogisticsService):
                     print("⚠️ Ни одного поля для изменения не введено. Операция отменена.")
                     continue
                     
-                service.repository.update_shipment(shipment_id, status=new_status, warehouse_id=new_wh_id)
+                # Вызов строго через метод сервиса
+                service.modify_shipment(shipment_id, status=new_status, warehouse_id=new_wh_id)
                 print("✅ [УСПЕХ]: Данные о грузе успешно обновлены.")
                 
             # 7. ПОСЧИТАТЬ КОЛИЧЕСТВО ДОСТАВОК ВОДИТЕЛЕЙ
             elif choice == "7":
-                counts = service.repository.get_driver_delivery_counts()
+                # Вызов строго через метод сервиса
+                counts = service.get_driver_rankings()
                 
                 if not counts:
                     print("ℹ️ В базе данных пока нет зарегистрированных водителей.")
@@ -167,7 +160,9 @@ def run_console_ui(service: LogisticsService):
             # 8. УДАЛИТЬ ГРУЗ
             elif choice == "8":
                 shipment_id = int(input("Введите ID груза для удаления из системы: "))
-                service.repository.delete_shipment(shipment_id)
+                
+                # Вызов строго через метод сервиса
+                service.remove_shipment(shipment_id)
                 print("✅ [УСПЕХ]: Груз окончательно удален из базы данных.")
                 
             # 9. УДАЛИТЬ СКЛАД
@@ -176,7 +171,8 @@ def run_console_ui(service: LogisticsService):
                 confirm = input("⚠️ ВНИМАНИЕ! Удаление склада удалит ВСЕ находящиеся на нем грузы (каскадно). Продолжить? (y/n): ")
                 
                 if confirm.lower() == 'y':
-                    service.repository.delete_warehouse(wh_id)
+                    # Вызов строго через метод сервиса
+                    service.remove_warehouse(wh_id)
                     print("✅ [УСПЕХ]: Склад и все связанные с ним грузы успешно удалены.")
                 else:
                     print("❌ Операция отменена пользователем.")
@@ -188,7 +184,7 @@ def run_console_ui(service: LogisticsService):
             else:
                 print("❌ Неизвестная команда! Выберите пункт от 0 до 9.")
                 
-        # Блоки безопасного перехвата бизнес-ошибок (Принцип разделения слоев)
+        # Блоки безопасного перехвата бизнес-ошибок и ошибок валидации
         except DuplicateEntityError as dee:
             print(f"\n⚠️ [ОШИБКА ДУБЛИРОВАНИЯ ДАННЫХ]: {dee}")
         except EntityNotFoundError as enfe:
@@ -196,13 +192,14 @@ def run_console_ui(service: LogisticsService):
         except InvalidStatusError as ise:
             print(f"\n🛑 [ОШИБКА ВАЛИДАЦИИ СТАТУСА]: {ise}")
         except ValueError as ve:
-            print(f"\n🛑 [ОШИБКА ВВОДА]: Неверный формат данных (например, текст вместо числа). Описание: {ve}")
+            print(f"\n🛑 [ОШИБКА ВВОДА]: Неверный формат данных (текст вместо числа или пустая строка). Описание: {ve}")
         except Exception as e:
             print(f"\n💥 [КРИТИЧЕСКАЯ СИСТЕМНАЯ ОШИБКА]: {e}")
+        except WarehouseCapacityExceededError as wcee:
+            print(f"\n🛑 [ПРЕВЫШЕН ЛИМИТ СКЛАДА]: {wcee}")
 
 
 if __name__ == "__main__":
-    # Основной цикл работы всего приложения
     while True:
         # 1. UI-слой запрашивает у пользователя режим работы с БД и создает нужный репозиторий
         chosen_repository = choose_database_mode()

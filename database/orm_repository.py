@@ -13,14 +13,14 @@ class ORMRepository(BaseRepository):
         self.engine = create_engine(database_url)
         self.Session = sessionmaker(bind=self.engine)
 
-    def add_warehouse(self, warehouse_id, name, location, capacity):
+    def add_warehouse(self, name, location, capacity):
         with self.Session() as session: #Контекстный менеджер with автоматически закроет сессию после выхода из блока try-except
             try:
-                existing_id = session.query(Warehouse).filter_by(id=warehouse_id).first()
-                if existing_id:
-                    raise DuplicateEntityError(f"склад с ID {warehouse_id} уже существует")
+                existing_wh = session.query(Warehouse).filter_by(name=name, location=location).first()
+                if existing_wh:
+                    raise DuplicateEntityError(f"cклад '{name}' по адресу '{location}' уже существует")
 
-                obj = Warehouse(id=warehouse_id, name=name, location=location, capacity=capacity)
+                obj = Warehouse(name=name, location=location, capacity=capacity)
                 session.add(obj)
                 session.commit()
                 return obj.id
@@ -200,3 +200,13 @@ class ORMRepository(BaseRepository):
             except Exception as e:
                 session.rollback()
                 raise e
+
+    def get_warehouse_capacity(self, warehouse_id) -> float:
+        with self.Session() as session:
+            warehouse = session.query(Warehouse).filter_by(id=warehouse_id).first()
+            return warehouse.capacity if warehouse else 0.0
+
+    def get_shipment_weight(self, shipment_id) -> float:
+        with self.Session() as session:
+            shipment = session.query(Shipment).filter_by(id=shipment_id).first()
+            return shipment.weight if shipment else 0.0

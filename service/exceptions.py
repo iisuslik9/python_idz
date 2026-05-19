@@ -9,6 +9,9 @@ class EntityNotFoundError(Exception):
     pass
 
 
-VALID_STATUSES = ["на складе", "в пути", "доставлен"]
+VALID_STATUSES = ["на складе", "в пути", "доставлен", "отменён"]
 class InvalidStatusError(Exception):
+    pass
+
+class WarehouseCapacityExceededError(Exception):
     pass
