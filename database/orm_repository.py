@@ -13,17 +13,22 @@ class ORMRepository(BaseRepository):
         self.engine = create_engine(database_url)
         self.Session = sessionmaker(bind=self.engine)
 
-    def add_warehouse(self, name, location, capacity):
+    def add_warehouse(self, warehouse_id, name, location, capacity):
         with self.Session() as session: #Контекстный менеджер with автоматически закроет сессию после выхода из блока try-except
             try:
-                obj = Warehouse(name=name, location=location, capacity=capacity)
+                existing_id = session.query(Warehouse).filter_by(id=warehouse_id).first()
+                if existing_id:
+                    raise DuplicateEntityError(f"склад с ID {warehouse_id} уже существует")
+
+                obj = Warehouse(id=warehouse_id, name=name, location=location, capacity=capacity)
                 session.add(obj)
                 session.commit()
                 return obj.id
-            
+            except (DuplicateEntityError, EntityNotFoundError):
+                raise
             except Exception as e:
-                    session.rollback()
-                    raise e
+                session.rollback()
+                raise e
 
     def add_shipment(self, tracking_number, weight, status, warehouse_id):
         with self.Session() as session:

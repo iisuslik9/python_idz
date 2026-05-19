@@ -14,7 +14,7 @@ from abc import ABC, abstractmethod
 
 class BaseRepository(ABC):
     @abstractmethod
-    def add_warehouse(self, name, location, capacity): 
+    def add_warehouse(self, warehouse_id, name, location, capacity): 
         pass
 
     @abstractmethod
