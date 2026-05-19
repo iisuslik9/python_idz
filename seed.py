@@ -1,47 +1,42 @@
 # заполнения тестовыми данными
-
+import os
 import sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from config import DATABASE_URL
 from datetime import date, timedelta
 from database.orm_repository import ORMRepository
 from service.exceptions import DuplicateEntityError, EntityNotFoundError
-
-# URL подключения к вашей базе данных PostgreSQL
-DB_URL_ORM = "postgresql://postgres:mysecret@localhost:5432/logistic_db"
+from sqlalchemy import text
 
 
 def clear_database(repo: ORMRepository):
-    """Очищает базу данных перед заполнением, чтобы избежать конфликтов уникальности."""
     print("[Seed] Очистка старых данных перед заполнением...")
     with repo.Session() as session:
-        # Удаляем данные в порядке, учитывающем внешние ключи
-        session.execute("TRUNCATE TABLE shipment_driver, shipment, driver, warehouse RESTART IDENTITY CASCADE;")
+        session.execute(text("TRUNCATE TABLE shipment_driver, shipment, driver, warehouse RESTART IDENTITY CASCADE;"))
         session.commit()
     print("[Seed] База данных успешно очищена.")
 
 
 def populate_data():
-    repo = ORMRepository(DB_URL_ORM)
+    repo = ORMRepository(DATABASE_URL)
     
     try:
-        # 0. Очищаем базу для стабильного повторного запуска
         clear_database(repo)
         
         print("\n[Seed] Начинаем заполнение тестовыми данными...")
 
-        # 1. Добавляем ровно 3 склада (Warehouse) — ID передаем вручную!
         warehouses_data = [
-            (1, "Главный Терминал А", "Москва, ул. Ленина, д. 10", 1500.0),
-            (2, "Региональный Хаб Б", "Санкт-Петербург, Пулковское ш., д. 4", 800.0),
-            (3, "Распределительный Центр С", "Новосибирск, ул. Станционная, д. 25", 1200.0)
+            ("Главный Терминал А", "Москва, ул. Ленина, д. 10", 15.0),
+            ("Региональный Хаб Б", "Санкт-Петербург, Пулковское ш., д. 4", 8.0),
+            ("Распределительный Центр С", "Новосибирск, ул. Станционная, д. 25", 12.0)
         ]
         
         warehouse_ids = []
-        for w_id, name, loc, cap in warehouses_data:
-            inserted_id = repo.add_warehouse(w_id, name, loc, cap)
+        for name, loc, cap in warehouses_data:
+            inserted_id = repo.add_warehouse(name, loc, cap)
             warehouse_ids.append(inserted_id)
-        print(f" -> Успешно добавлено складов: {len(warehouse_ids)} (ID: {warehouse_ids})")
 
-        # 2. Добавляем ровно 4 водителей (Driver)
+
         drivers_data = [
             ("Иванов Иван Иванович", "77АА123456"),
             ("Петров Петр Петрович", "78ББ654321"),
@@ -53,29 +48,25 @@ def populate_data():
         for name, license_num in drivers_data:
             inserted_id = repo.add_driver(name, license_num)
             driver_ids.append(inserted_id)
-        print(f" -> Успешно добавлено водителей: {len(driver_ids)} (ID: {driver_ids})")
 
-        # 3. Добавляем ровно 8 грузов (Shipment)
-        # Распределяем их по трем созданным складам
+
         shipments_data = [
-            ("TRK-001", 150.5, "На складе", warehouse_ids[0]),
-            ("TRK-002", 450.0, "В пути", warehouse_ids[0]),
-            ("TRK-003", 85.0, "На складе", warehouse_ids[0]),
-            ("TRK-004", 1200.0, "На складе", warehouse_ids[1]),
-            ("TRK-005", 310.2, "В пути", warehouse_ids[1]),
-            ("TRK-006", 950.0, "На складе", warehouse_ids[2]),
-            ("TRK-007", 45.0, "Доставлен", warehouse_ids[2]),
-            ("TRK-008", 620.1, "На складе", warehouse_ids[2])
+            ("TRK-001", 6000, "на складе", warehouse_ids[0]),
+            ("TRK-002", 4500.0, "в пути", warehouse_ids[0]),
+            ("TRK-003", 7500.0, "на складе", warehouse_ids[0]),
+            ("TRK-004", 1200.0, "на складе", warehouse_ids[1]),
+            ("TRK-005", 3100.2, "в пути", warehouse_ids[1]),
+            ("TRK-006", 9500.0, "на складе", warehouse_ids[2]),
+            ("TRK-007", 4500.0, "доставлен", warehouse_ids[2]),
+            ("TRK-008", 1000.0, "на складе", warehouse_ids[2])
         ]
         
         shipment_ids = []
         for tracking, weight, status, wh_id in shipments_data:
             inserted_id = repo.add_shipment(tracking, weight, status, wh_id)
             shipment_ids.append(inserted_id)
-        print(f" -> Успешно добавлено грузов: {len(shipment_ids)} (ID: {shipment_ids})")
 
-        # 4. Добавляем ровно 10 связей назначений (ShipmentDriver)
-        # Отражаем, какой водитель доставляет груз и дату доставки
+
         today = date.today()
         assignments_data = [
             (shipment_ids[0], driver_ids[0], today),                 # Водитель 1 везет груз 1 сегодня
@@ -94,15 +85,14 @@ def populate_data():
         for s_id, d_id, d_date in assignments_data:
             inserted_id = repo.add_shipment_driver(s_id, d_id, d_date)
             assignment_ids.append(inserted_id)
-        print(f" -> Успешно добавлено связей (доставок): {len(assignment_ids)}")
 
-        print("\n🎉 [Seed] БАЗА ДАННЫХ УСПЕШНО ЗАПОЛНЕНА ТЕСТОВЫМИ ДАННЫМИ!")
-        print("Все требования по объему данных для Варианта 4 выполнены.")
+
+        print("\БД УСПЕШНО ЗАПОЛНЕНА ТЕСТОВЫМИ ДАННЫМИ")
 
     except (DuplicateEntityError, EntityNotFoundError) as ex:
-        print(f"\n❌ [Seed Ошибка бизнес-логики]: {ex}")
+        print(f" [Seed Ошибка бизнес-логики]: {ex}")
     except Exception as e:
-        print(f"\n💥 [Seed Критическая ошибка]: {e}")
+        print(f"[Seed Критическая ошибка]: {e}")
         sys.exit(1)
 
 

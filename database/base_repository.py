@@ -62,3 +62,8 @@ class BaseRepository(ABC):
     @abstractmethod
     def get_shipment_weight(self, shipment_id):
         pass
+
+    @abstractmethod
+    def get_all_warehouses(self):
+        """Возвращает список всех зарегистрированных складов."""
+        pass

@@ -62,7 +62,7 @@ class Driver(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String, nullable=False)
     license_number = Column(String, unique=True, nullable=False)
-    phone_number = Column(String, nullable=True) 
+    #phone_number = Column(String, nullable=True) 
 
     # Связь м:м через промежуточную таблицу
     shipments = relationship(

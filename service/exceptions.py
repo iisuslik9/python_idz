@@ -9,7 +9,7 @@ class EntityNotFoundError(Exception):
     pass
 
 
-VALID_STATUSES = ["на складе", "в пути", "доставлен", "отменён"]
+VALID_STATUSES = ["на складе", "в пути", "доставлен"]
 class InvalidStatusError(Exception):
     pass
 

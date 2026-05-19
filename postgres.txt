@@ -1,64 +1,10 @@
 
+ -- Удаляем таблицы, если они уже существовали (в порядке, обратном внешним ключам)
 DROP TABLE IF EXISTS shipment_driver CASCADE;
 DROP TABLE IF EXISTS shipment CASCADE;
 DROP TABLE IF EXISTS driver CASCADE;
 DROP TABLE IF EXISTS warehouse CASCADE;
 
--- 1. Склад компании (Warehouse)
-CREATE TABLE warehouse (
+--очистить историю версий
+TRUNCATE TABLE alembic_version;
 
-    id INTEGER PRIMARY KEY, 
-    name VARCHAR(100) NOT NULL,
-    location VARCHAR(255) NOT NULL,
-    capacity DOUBLE PRECISION NOT NULL
-);
-
--- 2. Водитель компании (Driver)
-CREATE TABLE driver (
-    id SERIAL PRIMARY KEY, 
-    name VARCHAR(100) NOT NULL,
-    license_number VARCHAR(50) NOT NULL,
-
-    CONSTRAINT uk_driver_license UNIQUE (license_number) 
-);
-
--- 3. Груз (Shipment)
-CREATE TABLE shipment (
-    id SERIAL PRIMARY KEY,
-    tracking_number VARCHAR(50) NOT NULL,
-    weight FLOAT NOT NULL,
-    status VARCHAR(50) NOT NULL DEFAULT 'на складе',
-    warehouse_id INTEGER NOT NULL,
-    
-    -- Ограничение уникальности трек-номера
-    CONSTRAINT uk_shipment_tracking UNIQUE (tracking_number),
-    
-    -- Внешний ключ на склад с каскадным удалением грузов при удалении склада
-    CONSTRAINT fk_shipment_warehouse 
-        FOREIGN KEY (warehouse_id) 
-        REFERENCES warehouse(id) 
-        ON DELETE CASCADE
-);
-
--- 4. Связь многие ко многим между Shipment и Driver (ShipmentDriver)
-CREATE TABLE shipment_driver (
-    id SERIAL PRIMARY KEY,
-    shipment_id INTEGER NOT NULL,
-    driver_id INTEGER NOT NULL,
-    delivery_date DATE NOT NULL DEFAULT CURRENT_DATE,
-    
-    -- Внешний ключ на груз (если груз удален — удаляется и запись о его доставке)
-    CONSTRAINT fk_shipment_driver_shipment 
-        FOREIGN KEY (shipment_id) 
-        REFERENCES shipment(id) 
-        ON DELETE CASCADE,
-        
-    -- Внешний ключ на водителя (если водитель удален — удаляется и запись о его доставке)
-    CONSTRAINT fk_shipment_driver_driver 
-        FOREIGN KEY (driver_id) 
-        REFERENCES driver(id) 
-        ON DELETE CASCADE,
-        
-    -- Ограничение уникальности, чтобы один водитель не вез один и тот же груз дважды в один день
-    CONSTRAINT uk_shipment_driver_assignment UNIQUE (shipment_id, driver_id, delivery_date)
-);

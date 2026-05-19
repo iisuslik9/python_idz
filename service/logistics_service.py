@@ -12,7 +12,7 @@ class LogisticsService:
         #(Dependency Injection). Принимает любой репозиторий, реализующий интерфейс BaseRepository
         self.repository = repository
 
-    def register_new_warehouse(self, warehouse_id: int, name: str, location: str, capacity: float) -> int:
+    def register_new_warehouse(self, name, location, capacity: float):
         if not name.strip():
             raise ValueError("название склада не может быть пустым")
         if not location.strip():
@@ -20,7 +20,7 @@ class LogisticsService:
         if capacity <= 0:
             raise ValueError("вместимость склада должна быть > 0")
             
-        return self.repository.add_warehouse(warehouse_id, name.strip(), location.strip(), capacity)
+        return self.repository.add_warehouse(name.strip(), location.strip(), capacity)
 
     def register_new_shipment(self, tracking_number: str, weight: float, status: str, warehouse_id: int) -> int:
         if not tracking_number.strip():
@@ -38,13 +38,13 @@ class LogisticsService:
             raise EntityNotFoundError(f"Склад с ID {warehouse_id} не найден.")
 
 
-        current_shipments = self.repository.get_shipments_by_warehouse(warehouse_id)
-        current_total_weight = sum(s['weight'] for s in current_shipments)
+        current_shipments = self.repository.get_shipments_by_warehouse(warehouse_id) / 1000.0
+        current_total_weight = sum(s['weight'] for s in current_shipments if s['status'] == "на складе")
 
         if current_total_weight + weight > warehouse_capacity:
             raise WarehouseCapacityExceededError(
                 f"Невозможно добавить груз весом {weight}. Лимит склада превышен"
-                f"Текущая загрузка: {current_total_weight}/{warehouse_capacity}"
+                f"Текущая загрузка: {current_total_weight}/{warehouse_capacity} тонн"
             )
             
         return self.repository.add_shipment(tracking_number.strip(), weight, status, warehouse_id)
@@ -57,7 +57,7 @@ class LogisticsService:
             
         return self.repository.add_driver(name.strip(), license_number.strip())
 
-    def assign_driver_to_shipment(self, shipment_id: int, driver_id: int, delivery_date: date) -> int:
+    def assign_driver_to_shipment(self, shipment_id, driver_id, delivery_date):
         if shipment_id <= 0 or driver_id <= 0:
             raise ValueError("id груза и id водителя должны быть положительными числами")
         if not isinstance(delivery_date, date):
@@ -99,7 +99,7 @@ class LogisticsService:
 
             # вес грузов на целевом складе
             current_shipments = self.repository.get_shipments_by_warehouse(warehouse_id)
-            current_total_weight = sum(s['weight'] for s in current_shipments)
+            current_total_weight = sum(s['weight'] for s in current_shipments if s['status'] == "на складе") / 1000.0
 
            
             if current_total_weight + shipment_weight > warehouse_capacity:
@@ -111,14 +111,28 @@ class LogisticsService:
             
         return self.repository.update_shipment(shipment_id, status, warehouse_id)
 
-    def remove_shipment(self, shipment_id: int) -> bool:
+    def remove_shipment(self, shipment_id) -> bool:
         if shipment_id <= 0:
             raise ValueError("id груза должен быть положительным числом.")
             
         return self.repository.delete_shipment(shipment_id)
 
-    def remove_warehouse(self, warehouse_id: int) -> bool:
+    def remove_warehouse(self, warehouse_id) -> bool:
         if warehouse_id <= 0:
             raise ValueError("Идентификатор склада должен быть положительным числом.")
             
         return self.repository.delete_warehouse(warehouse_id)
+    
+    def get_warehouses_info(self):
+        warehouses = self.repository.get_all_warehouses()
+        
+        # Для каждого склада динамически рассчитываем текущий физический вес грузов
+        for wh in warehouses:
+            current_shipments = self.repository.get_shipments_by_warehouse(wh['id'])
+            current_total_weight = sum(s['weight'] for s in current_shipments if s['status'] == "на складе") / 1000.0
+            wh['current_weight'] = current_total_weight
+            wh['free_space'] = wh['capacity'] - current_total_weight
+
+        return {
+            "warehouses": warehouses
+        }

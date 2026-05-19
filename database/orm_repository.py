@@ -210,3 +210,12 @@ class ORMRepository(BaseRepository):
         with self.Session() as session:
             shipment = session.query(Shipment).filter_by(id=shipment_id).first()
             return shipment.weight if shipment else 0.0
+        
+    def get_all_warehouses(self) -> List[Dict[str, Any]]:
+        with self.Session() as session:
+            warehouses = session.query(Warehouse).order_by(Warehouse.id).all()
+            return [
+                {"id": w.id, "name": w.name, "location": w.location, "capacity": w.capacity}
+                for w in warehouses
+            ]
+

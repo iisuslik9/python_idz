@@ -1,8 +1,8 @@
-"""Init tables
+"""init tables
 
-Revision ID: e0dc582dff7a
-Revises: baa9ea8a1d01
-Create Date: 2026-05-19 19:21:56.139761
+Revision ID: ecd8ebb42df5
+Revises: 
+Create Date: 2026-05-19 23:31:34.863443
 
 """
 from typing import Sequence, Union
@@ -12,8 +12,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = 'e0dc582dff7a'
-down_revision: Union[str, Sequence[str], None] = 'baa9ea8a1d01'
+revision: str = 'ecd8ebb42df5'
+down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
@@ -25,12 +25,11 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('name', sa.String(), nullable=False),
     sa.Column('license_number', sa.String(), nullable=False),
-    sa.Column('phone_number', sa.String(), nullable=True),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('license_number')
     )
     op.create_table('warehouse',
-    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('name', sa.String(), nullable=False),
     sa.Column('location', sa.String(), nullable=False),
     sa.Column('capacity', sa.Float(), nullable=False),
