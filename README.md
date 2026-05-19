@@ -30,3 +30,34 @@ ShipmentDriver).
 
 
 Возвращает данные в виде словарей (dict), благодаря чему верхние слои приложения даже не заметят, что мы сменили ORM на сырой SQL.
+Создайте пустую базу данных
+ параметры подключения в config.py
+alembic init alembic в корне проекта
+В alembic.ini укажите ваш URL базы данных.
+
+
+ В alembic/env.py импортируйте Base.metadata из orm_models.py для автогенерации.
+ 
+ 
+ Найдите в файле строку sqlalchemy.url и укажите в ней строку подключения к вашей PostgreSQL: sqlalchemy.url =postgresql://postgres:mysecret@localhost:5433/logistic_company
+
+ # 1. Импортируем базовый класс и сами модели, чтобы Alembic их прочитал
+from database.orm_models import Base
+
+# 2. Передаем метаданные моделей в Alembic
+target_metadata = Base.metadata
+
+  
+ 
+ 
+ Миграция 1: Создайте первую миграцию (alembic revision --autogenerate -m "Init tables"), которая создаст таблицы Warehouse, Shipment, Driver, ShipmentDriver. Примените её: alembic upgrade head.
+ 
+ 
+ 
+ Убедитесь, что в СУБД создана пустая база данных logistic_company.Выполните команду автоматической генерации первой миграции:alembic revision --autogenerate -m "Init tables"
+ 
+ 
+ 
+ 
+ 
+ Миграция 2: Вручную или через изменение моделей добавьте новое поле (например, в Warehouse добавьте поле phone VARCHAR(20) или в Driver поле is_active со значением по умолчанию). Сгенерируйте и примените вторую миграцию.Протестируйте откат: alembic downgrade -1, а затем верните обратно alembic upgrade head.

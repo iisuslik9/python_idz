@@ -38,7 +38,7 @@ class Shipment(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     tracking_number = Column(String, unique=True, nullable=False)
     weight = Column(Float, nullable=False)
-    status = Column(String, nullable=False, default="На складе")
+    status = Column(String, nullable=False, default="на складе")
     warehouse_id = Column(Integer, ForeignKey("warehouse.id", ondelete="CASCADE"), nullable=False)
 
     # обратная связь со складом
