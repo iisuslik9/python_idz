@@ -37,13 +37,12 @@ class LogisticsService:
         if warehouse_capacity == 0.0:
             raise EntityNotFoundError(f"Склад с ID {warehouse_id} не найден.")
 
+        current_shipments = self.repository.get_shipments_by_warehouse(warehouse_id)
+        current_total_weight = sum(s['weight'] for s in current_shipments if s['status'] == "на складе") / 1000.0
 
-        current_shipments = self.repository.get_shipments_by_warehouse(warehouse_id) / 1000.0
-        current_total_weight = sum(s['weight'] for s in current_shipments if s['status'] == "на складе")
-
-        if current_total_weight + weight > warehouse_capacity:
+        if current_total_weight + weight > warehouse_capacity * 1000.0:
             raise WarehouseCapacityExceededError(
-                f"Невозможно добавить груз весом {weight}. Лимит склада превышен"
+                f"Невозможно добавить груз весом {weight} кг. Лимит склада превышен"
                 f"Текущая загрузка: {current_total_weight}/{warehouse_capacity} тонн"
             )
             
