@@ -190,7 +190,7 @@ class ORMRepository(BaseRepository):
             try:
                 warehouse = session.query(Warehouse).filter_by(id=warehouse_id).first()
                 if not warehouse:
-                    raise EntityNotFoundError(f"Склад с ID {warehouse_id} не найден. Удаление невозможно.")
+                    raise EntityNotFoundError(f"Склад с ID {warehouse_id} не найден. Удаление невозможно")
                     
                 session.delete(warehouse)
                 session.commit()

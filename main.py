@@ -185,7 +185,7 @@ def run_console_ui(service: LogisticsService):
                 summary = service.get_warehouses_info()
                 
                 if not summary["warehouses"]:
-                    print("Склады в базе данных отсутствуют.")
+                    print("ℹ️Склады в базе данных отсутствуют.")
                 for wh in summary["warehouses"]:
                     print(f"📦 Склад №{wh['id']} '{wh['name']}'")
                     print(f"   📍 Адрес: {wh['location']}")
@@ -217,11 +217,11 @@ def run_console_ui(service: LogisticsService):
 
 if __name__ == "__main__":
     while True:
-        # 1. UI-слой запрашивает у пользователя режим работы с БД и создает нужный репозиторий
+        # UI-слой запрашивает у пользователя режим работы с БД и создает нужный репозиторий
         chosen_repository = choose_database_mode()
         
-        # 2. Инициализируем сервисный слой бизнес-логики и внедряем зависимость (Dependency Injection)
+        # Инициализируем сервисный слой бизнес-логики и внедряем зависимость (Dependency Injection)
         logistics_service = LogisticsService(repository=chosen_repository)
         
-        # 3. Запускаем консольный интерфейс для выбранного режима
+        # Запускаем консольный интерфейс для выбранного режима
         run_console_ui(logistics_service)
