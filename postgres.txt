@@ -1,0 +1,10 @@
+
+ -- Удаляем таблицы, если они уже существовали (в порядке, обратном внешним ключам)
+DROP TABLE IF EXISTS shipment_driver CASCADE;
+DROP TABLE IF EXISTS shipment CASCADE;
+DROP TABLE IF EXISTS driver CASCADE;
+DROP TABLE IF EXISTS warehouse CASCADE;
+
+--очистить историю версий
+TRUNCATE TABLE alembic_version;
+
