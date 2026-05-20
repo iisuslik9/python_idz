@@ -214,8 +214,23 @@ class LogisticsGUI(tk.Tk):
         messagebox.showinfo("Успех", f"Склад добавлен. ID: {warehouse_id}")
         self.clear_form()
 
+    def _get_warehouse_choices(self):
+        warehouses = self.service.repository.get_all_warehouses()
+        choices = []
+        self._warehouse_map = {}
+        for wh in warehouses:
+            display = f"{wh['name']} (ID {wh['id']})"
+            choices.append(display)
+            self._warehouse_map[display] = wh['id']
+        return choices
+
     def add_shipment(self):
         if self.service is None:
+            return
+
+        warehouse_choices = self._get_warehouse_choices()
+        if not warehouse_choices:
+            messagebox.showwarning("Нет складов", "Сначала добавьте склад, затем заполните груз.")
             return
 
         fields = [
@@ -230,13 +245,25 @@ class LogisticsGUI(tk.Tk):
                 "default": VALID_STATUSES[0],
                 "value_type": str,
             },
-            {"name": "warehouse_id", "label": "ID склада:", "required": True, "value_type": int},
+            {
+                "name": "warehouse_label",
+                "label": "Склад:",
+                "required": True,
+                "type": "combobox",
+                "values": warehouse_choices,
+                "default": warehouse_choices[0],
+                "value_type": str,
+            },
         ]
         self.create_form("Добавить груз", fields, self.submit_add_shipment)
 
-    def submit_add_shipment(self, tracking: str, weight: float, status: str, warehouse_id: int):
+    def submit_add_shipment(self, tracking: str, weight: float, status: str, warehouse_label: str):
+        warehouse_id = self._warehouse_map.get(warehouse_label)
+        if warehouse_id is None:
+            raise ValueError("Выберите склад из списка")
+
         shipment_id = self.service.register_new_shipment(tracking.strip(), weight, status, warehouse_id)
-        self.log(f"Груз добавлен: ID={shipment_id}, трек='{tracking}', вес={weight} кг, статус='{status}', склад={warehouse_id}")
+        self.log(f"Груз добавлен: ID={shipment_id}, трек='{tracking}', вес={weight} кг, статус='{status}', склад={warehouse_label}")
         messagebox.showinfo("Успех", f"Груз добавлен. ID: {shipment_id}")
         self.clear_form()
 
