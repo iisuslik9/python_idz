@@ -21,7 +21,7 @@ class Warehouse(Base):
     location = Column(String, nullable=False)
     capacity = Column(Float, nullable=False)
 
-    # cascade="all, delete-orphan" удаляет грузы, если удален склад
+    # cascade="all, delete-orphan" каскадное удаление грузов при удалении склада
     shipments = relationship(
         "Shipment", 
         back_populates="warehouse", 

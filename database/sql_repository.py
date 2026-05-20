@@ -19,8 +19,9 @@ class SQLRepository(BaseRepository):
 
     def _get_connection(self):
         # Использование RealDictCursor заставляет psycopg2 возвращать строки в виде словарей,
-        # что гарантирует идентичность структур данных с ORM-репозиторием.
+        # что гарантирует идентичность структур данных с ORM-репозиторием
         return psycopg2.connect(self.dsn, cursor_factory=RealDictCursor)
+    
 
 
     def add_warehouse(self, name, location, capacity):
